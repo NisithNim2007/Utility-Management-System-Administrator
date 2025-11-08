@@ -1,5 +1,5 @@
 <?php
-include 'include/db.php';
+include '../include/db.php';
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
