@@ -1,9 +1,9 @@
 <?php
-$host = "localhost";
-$port = "1433";
-$dbname = "";
-$username = "";
-$password = "";
+$host = "159.65.158.217";
+$port = "";
+$dbname = "UMS1";
+$username = "imrgroup_project_login";
+$password = "TUIY43afwejin123JKH";
 
 try {
     $dsn = "sqlsrv:Server=$host,$port;Database=$dbname";
