@@ -7,14 +7,6 @@ if (!isset($_SESSION['UserID']) || !isset($_SESSION['RoleID']) || $_SESSION['Rol
   exit();
 }
 
-try {
-  $stmt = $pdo->query("SELECT UtilityTypeID, UtilityTypeName FROM UtilityTypes ORDER BY UtilityTypeID");
-  $utilities = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-  error_log("Database error: " . $e->getMessage());
-  $utilities = [];
-}
-
 $username = $_SESSION['Username'];
 ?>
 
