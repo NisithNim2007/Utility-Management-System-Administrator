@@ -1,9 +1,9 @@
 <?php
-$host = "localhost";
+$host = "159.65.158.217";
 $port = "1433";
-$dbname = "";
-$username = "";
-$password = "";
+$dbname = "UMS1";
+$username = "imrgroup_project_login";
+$password = "TUIY43afwejin123JKH";
 
 try {
     $dsn = "sqlsrv:Server=$host,$port;Database=$dbname";
@@ -16,5 +16,32 @@ try {
     //log errors
     error_log("Database connection failed." . $e->getMessage(), 0);
     die("Database connection failed. Please try again later.");
+}
+
+
+function executeQuery(PDO $conn, string $sql, array $params=[], bool $single=false
+){
+    try{
+        $stmt = $conn-> prepare($sql);
+    if(!empty($params)){
+        foreach ($params as $key => $value){
+
+            if(is_string($key)){
+                $stmt -> bindValue($key, $value);
+            }else{
+                $stmt -> bindValue($key + 1, $value);
+            }
+        }
+
+    }
+        $stmt -> execute();
+        
+        return $single
+            ? $stmt-> fetch(PDO::FETCH_ASSOC)
+            : $stmt->fetchAll(PDO::FETCH_ASSOC);
+       
+    }catch(PDOException $e){
+        die("Database error: " . $e->getMessage());
+    }
 }
 ?>
