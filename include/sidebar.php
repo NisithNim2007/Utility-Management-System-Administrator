@@ -1,4 +1,4 @@
-<nav class="bg-[#213655] text-white w-64 h-screen flex flex-col p-6">
+<nav class="bg-[#213655] text-white w-64 h-screen fixed top-0 left-0 flex overflow-y-auto flex-col p-6">
         <h1 class="text-3xl font-bold mb-10">Utility management system</h1>
         <ul class="flex flex-col space-y-4 w-full">
             <li><a href="/Utility-Management-System/Utility-Management-System-Administrator/dashboard.php" class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-gray-900 rounded transition">Dashboard</a></li>
