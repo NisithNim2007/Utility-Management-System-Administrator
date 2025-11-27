@@ -68,14 +68,14 @@ $user_load = executeQuery($pdo,$query,$params,false);
 
 
   <!--display-->  
-  <table class="w-full bg-white rounded-xl shadow boarder-collapse overflow-hidden table-fixed">
+  <table class="w-full bg-white rounded-xl shadow boarder-collapse overflow-hidden">
         <thead>
             <tr class="bg-gray-700 text-left text-white">
-            <th class="p-3 w-32">User Id</th>
-            <th class="p-3 w-32">Full name</th>
+            <th class="p-3 w-20">User Id</th>
+            <th class="p-3 w-32">Name</th>
             <th class="p-3 w-32">Username</th>
             <th class="p-3 w-32">Role</th>
-            <th class="p-3 w-81">Email</th>
+            <th class="p-3 w-[300px]">Email</th>
             <th class="p-3 w-32">Registration Date</th>
             <th class="p-3 w-32">Password</th>
             <th class="p-3 w-32">Account</th>
