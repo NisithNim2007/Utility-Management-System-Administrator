@@ -53,15 +53,15 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
 
 
   <!--display-->  
-  <table class="w-full bg-white rounded-xl shadow boarder-collapse overflow-hidden table-fixed">
+  <table class="w-full bg-white rounded-xl shadow border-4 boarder-collapse overflow-hidden table-fixed">
         <thead>
-            <tr class="bg-gray-700 text-left text-white">
+            <tr class="bg-[#f0f0f0] text-left text-[#162029]">
             <th class="p-3 w-32">Complaint Id</th>
-            <th class="p-3 w-32">Customer Id</th>
-            <th class="p-3 w-32">Full Name</th>
-            <th class="p-3 w-32">Connection Id</th>
+            <!--<th class="p-3 w-32">Customer Id</th>-->
+            <th class="p-3 w-50">Name</th>
+            <!--<th class="p-3 w-32">Connection Id</th>-->
             <th class="p-3 w-32">Utility Type</th>
-            <th class="p-3 w-81">Description</th>
+            <th class="p-3 w-85">Description</th>
             <th class="p-3 w-32">Date</th>
             <th class="p-3 w-32">Status</th>
             <th class="p-3 w-32">View</th>
@@ -72,12 +72,12 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
                 <?php foreach($complaints_his as $row): ?>
                     <tr class="border-b h-12">
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintID'])?></td>
-                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['CustomerID'])?></td>
+                    <!--<td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?//htmlspecialchars($row['CustomerID'])?></td>-->
                          <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['CustomerName'])?></td>
-                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ConnectionID'])?></td>
+                    <!--<td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?//htmlspecialchars($row['ConnectionID'])?></td>-->
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['UtilityTypeName'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintDescription'])?></td>
-                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintDate'])?></td>
+                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= date('Y-m-d',strtotime($row['ComplaintDate']))?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap">
                                 <span class="px-3 py-1 bg-green-300 text-green-900 rounded-full"><?= $row['ComplaintStatusName']?></span>
                         </td>
@@ -86,7 +86,7 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
                         <td class="p-3">
                             <button class="bg-blue-800 text-white px-4 py-1 rounded-lg hover:bg-blue-700 transition ml-5" 
                             onclick="openComplaintModal(
-                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['CustomerName'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'])?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
+                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['CustomerName'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'],ENT_QUOTES)?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
                                 '<?= htmlspecialchars($row['ComplaintStatusName'])?>' , '<?= htmlspecialchars($row['UtilityTypeName'])?>')">View</button>
                         </td>
                     </tr>
@@ -176,7 +176,16 @@ function openComplaintModal(id, customerId, customerName, connectionId, descript
     document.getElementById("modalCustomerName").innerText = customerName;
     document.getElementById("modalConnectionId").innerText = connectionId;
     document.getElementById("modalDescription").innerText = description;
-    document.getElementById("modalDate").innerText = date;
+
+     const dt =  new Date(date);
+    const formatDt = dt.toLocaleString('en-GB', {
+
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    document.getElementById("modalDate").innerText = formatDt;
+
     document.getElementById("modalUtility").innerText = utilityType;
     document.getElementById("modalStatus").innerText = status;
 

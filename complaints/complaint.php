@@ -105,15 +105,15 @@ $gas = $stats['gas_complaints'];
 
     <!--display-->
        
-        <table class="w-full bg-white rounded-xl shadow border-4  border-collapse overflow-hidden table-fixed">
+        <table class="w-full bg-white rounded-xl shadow border-4  border-collapse overflow-hidden table-fixed"> <!--table-fixed-->
         <thead>
             <tr class="bg-[#f0f0f0] text-left text-[#162029]">
             <th class="p-3 w-32">Complaint Id</th>
-            <th class="p-3 w-32">Customer Id</th>
-            <th class="p-3 w-32">Full Name</th>
-            <th class="p-3 w-32">Connection Id</th>
+            <!--<th class="p-3 w-32">Customer Id</th>-->
+            <th class="p-3 w-50">Name</th>
+            <!--<th class="p-3 w-32">Connection Id</th>-->
             <th class="p-3 w-32">Utility Type</th>
-            <th class="p-3 w-81">Description</th>
+            <th class="p-3 w-85">Description</th>
             <th class="p-3 w-32">Date</th>
             <th class="p-3 w-32">Status</th>
             <th class="p-3 w-32">View</th>
@@ -124,12 +124,12 @@ $gas = $stats['gas_complaints'];
                 <?php foreach($complaints as $row): ?>
                     <tr class="border-b h-12">
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintID'])?></td>
-                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['CustomerID'])?></td>
+                    <!--<td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?//htmlspecialchars($row['CustomerID'])?></td>-->
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['CustomerName'])?></td>
-                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ConnectionID'])?></td>
+                    <!--<td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?//htmlspecialchars($row['ConnectionID'])?></td>-->
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['UtilityTypeName'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintDescription'])?></td>
-                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintDate'])?></td>
+                        <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= date('Y-m-d',strtotime($row['ComplaintDate']))?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap">
                             <?php if($row['ComplaintStatusName'] === 'Pending'): ?>
                                 <span class="px-3 py-1 bg-yellow-300 text-yellow-900 rounded-full"><?= $row['ComplaintStatusName']?></span>
@@ -242,7 +242,15 @@ function openComplaintModal(id, customerId,customerName, connectionId, descripti
     document.getElementById("modalCustomerName").innerText = customerName;
     document.getElementById("modalConnectionId").innerText = connectionId;
     document.getElementById("modalDescription").innerText = description;
-    document.getElementById("modalDate").innerText = date;
+
+    const dt =  new Date(date);
+    const formatDt = dt.toLocaleString('en-GB', {
+
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    document.getElementById("modalDate").innerText = formatDt;
     document.getElementById("modalUtility").innerText = utilityType;
     //document.getElementById("modalStatus").innerText = status;
 
@@ -270,10 +278,17 @@ document.querySelector(".bg-purple-600").onclick = function(){
         return;
     }
 
+    if(!confirm("Are you sure you want to update complaint status as IN PROGRESS?")){
+        return;
+    }
+
     updateStatus(2);
 };
 
 document.querySelector(".bg-green-600").onclick = function(){
+     if(!confirm("Are you sure you want to update complaint status as IN PROGRESS?")){
+        return;
+    }
     updateStatus(3);
 }
 
@@ -290,7 +305,8 @@ function updateStatus(newStatus){
     })
     .then(res => res.text())
     .then(data => {
-        if(data.trim() === "Success"){
+        console.log("RAW: ", data);
+        if(data.trim() === "success"){
             alert("Status updated");
             window.location.reload();
         }else{

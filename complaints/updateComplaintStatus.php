@@ -23,10 +23,10 @@ $params = [
     ':uid' => $userID
 ];
 
-$result = executeQuery($pdo,$query,$params,false);
+$result = executeNonQuery($pdo,$query,$params);
 
 if($result !== false){
-    echo "Success";
+    echo "success";
 }else{
     echo "Error";
 }
