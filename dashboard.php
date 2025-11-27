@@ -1,16 +1,22 @@
 <?php
 session_start();
+include('./include/db.php');
 //check if logged
-if(!isset($_SESSION['Username'])){
-    header("Location: .././login.php");
-    exit;
+if (!isset($_SESSION['UserID']) || !isset($_SESSION['RoleID']) || $_SESSION['RoleID'] != 1) {
+  header("Location: ../login.php");
+  exit();
 }
-include ('./include/header.php'); ?>
+
+$username = $_SESSION['Username'];
+
+include ('./include/header.php'); 
+?>
 
 <div class="flex">
 
-<?php include ('./include/sidebar.php'); 
-     include('./include/db.php');
+<?php 
+include ('./include/sidebar.php'); 
+
 
 //fetch values from db (counts)
 $stats = executeQuery($pdo,"EXEC sp_dashCount",[],true);
