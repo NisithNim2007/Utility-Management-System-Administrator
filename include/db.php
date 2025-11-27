@@ -44,4 +44,22 @@ function executeQuery(PDO $conn, string $sql, array $params=[], bool $single=fal
         die("Database error: " . $e->getMessage());
     }
 }
+
+
+
+
+
+function executeNonQuery(PDO $conn, $sql, $params=[]){
+    try{
+        $stmt = $conn->prepare($sql);
+
+        foreach($params as $key=>$value){
+            $stmt->bindValue($key,$value);
+        }
+        $stmt->execute();
+        return "success";
+    }catch (PDOException $e){
+        return "Databse error: " . $e->getMessage();
+    }
+}
 ?>
