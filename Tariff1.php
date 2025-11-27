@@ -3,12 +3,12 @@
     
     // --- PHP Templating ---
     // 1. Include the start of the HTML document, <head>, the Tailwind CDN link, and <body> tag.
-    include ('includes/header.php'); 
+    include ('include/header.php'); 
 ?>
 
 <div class="min-h-screen bg-[#f0f0f0]">
     
-    <?php include ('includes/sidebar.php'); ?>
+    <?php include ('include/sidebar.php'); ?>
 
     <main class="p-8 overflow-auto ml-64">
 
@@ -886,8 +886,3 @@
     });
     
 </script>
-
-<?php 
-    // 3. Include the closing </body> and </html> tags.
-    include ('includes/footer.php'); 
-?>
