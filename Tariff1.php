@@ -144,13 +144,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -198,13 +206,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -252,13 +268,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -306,13 +330,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -360,13 +392,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -414,13 +454,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -468,13 +516,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -522,13 +578,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -576,13 +640,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -630,13 +702,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -684,13 +764,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -738,13 +826,21 @@
                             echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
                             // actions: edit + delete form (post)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                        <input type='hidden' name='action' value='delete_slab'>
-                                        <input type='hidden' name='RateID' value='". $rateId ."'>
-                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                                    </form>
-                                </td>";
+                            <button onclick=\"openEditTariffModal(
+                            $rateId,
+                            $slabStart,
+                            " . ($slabEnd === '' || $slabEnd === null ? "null" : $slabEnd) . ",
+                            $ratePerUnit,
+                            $fixed,
+                            $rateUnitId)\" 
+                            class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit </button>
+                            
+                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                <input type='hidden' name='action' value='delete_slab'>
+                                <input type='hidden' name='RateID' value='$rateId'>
+                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {
