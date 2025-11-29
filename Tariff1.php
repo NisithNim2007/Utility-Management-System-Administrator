@@ -4,6 +4,8 @@
     // --- PHP Templating ---
     // 1. Include the start of the HTML document, <head>, the Tailwind CDN link, and <body> tag.
     include ('include/header.php'); 
+    include('include/db.php');
+    $rateUnits = executeQuery($pdo, "SELECT RateUnitID, UnitName FROM RateUnits ORDER BY RateUnitID");
 ?>
 
 <div class="min-h-screen bg-[#f0f0f0]">
@@ -14,6 +16,19 @@
 
         <!--div class="h-[calc(100vh-80px)] flex flex-col bg-white p-6 rounded-xl shadow-lg"-->
         <h2 class="text-3xl font-bold text-[#213655] mb-4">TARIFF MANAGEMENT</h2>
+
+        <!-- UPDATED: FLASH MESSAGES -->
+        <?php if (!empty($_SESSION['flash_success'])): ?>
+            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">
+                <?= htmlspecialchars($_SESSION['flash_success']); unset($_SESSION['flash_success']); ?>
+            </div>
+        <?php endif; ?>
+        <?php if (!empty($_SESSION['flash_error'])): ?>
+            <div class="mb-4 p-3 bg-red-100 text-red-800 rounded">
+                <?= htmlspecialchars($_SESSION['flash_error']); unset($_SESSION['flash_error']); ?>
+            </div>
+        <?php endif; ?>
+        <!-- END UPDATED -->
 
         <div class="mb-6 border-b border-gray-200 pb-4">
             <h3 class="text-lg font-semibold text-gray-700 mb-3">Facility</h3>
@@ -28,10 +43,68 @@
             <h3 class="text-lg font-semibold text-gray-700 mb-3">Consumer Group Category</h3>
             <div id="category-tabs" class="flex border-b border-gray-300 overflow-x-auto space-x-4">
                 <button id="cat-domestic" data-category="domestic" class="py-2 px-4 border-b-2 border-[#213655] text-[#213655] font-medium whitespace-nowrap focus:outline-none hover:text-white hover:bg-[#213655] hover:border-b-2 hover:[#213655] transition rounded" onclick="selectCategory('domestic')">Domestic Users</button>
+                <button id="cat-commercial" data-category="commercial" class="py-2 px-4 text-[#213655] hover:text-white hover:bg-[#213655] hover:border-b-2 hover:border-[#213655] transition whitespace-nowrap rounded" onclick="selectCategory('commercial')">Commercial Users</button>
                 <button id="cat-government" data-category="government" class="py-2 px-4 text-[#213655] hover:text-white hover:bg-[#213655] hover:border-b-2 hover:border-[#213655] transition whitespace-nowrap rounded" onclick="selectCategory('government')">Government Institutions</button>
                 <button id="cat-nonprofit" data-category="nonprofit" class="py-2 px-4 text-[#213655] hover:text-white hover:bg-[#213655] hover:border-b-2 hover:border-[#213655] transition whitespace-nowrap rounded" onclick="selectCategory('nonprofit')">Religous/Non-profit Organizations</button>
             </div>
         <!--/div-->
+
+        <!-- UPDATED: Plan selector + Effective date + Fixed charge scope -->
+        <?php
+        // fetch active plans for current utility/category to populate selector
+            $plans = executeQuery($pdo, "SELECT TariffPlanID, PlanName, UtilityTypeID, EffectiveFrom, EffectiveTo, FixedChargeScope FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
+        ?>
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <label class="text-sm font-medium text-gray-700">Tariff Plan</label>
+                <form method="post" action="tariff-backend.php" id="plan-details-form" class="flex items-center space-x-3">
+                    <input type="hidden" name="action" value="save_plan_details">
+                    <select name="TariffPlanID" id="TariffPlanID" class="border p-2 rounded" onchange="onPlanChange()" required>
+                        <?php foreach($plans as $p): ?>
+                            <option value="<?= $p['TariffPlanID'] ?>" data-from="<?= $p['EffectiveFrom'] ?>" data-to="<?= $p['EffectiveTo'] ?>" data-fixed="<?= $p['FixedChargeScope'] ?>"><?= htmlspecialchars($p['PlanName']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <!-- Effective dates -->
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-gray-600">Valid From</label>
+                        <input type="date" id="EffectiveFrom" name="EffectiveFrom" class="border p-2 rounded" />
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-gray-600">Valid To</label>
+                        <input type="date" id="EffectiveTo" name="EffectiveTo" class="border p-2 rounded" />
+                    </div>
+
+                    <!-- Fixed charge scope -->
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-gray-600">Fixed Charge</label>
+                        <select name="FixedChargeScope" id="FixedChargeScope" class="border p-2 rounded">
+                            <option value="PER_BILL">Per bill (final slab)</option>
+                            <option value="PER_SLAB">Per slab (each slab's fixed) </option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="px-3 py-1.5 bg-[#213655] text-white rounded hover:bg-[#162029]">Save</button>
+                </form>
+            </div>
+        </div>
+
+        <script>
+        // UPDATED: populate EffectiveFrom/To fields when plan changes
+        function onPlanChange(){
+            const sel = document.getElementById('TariffPlanID');
+            const opt = sel.options[sel.selectedIndex];
+            document.getElementById('EffectiveFrom').value = opt.dataset.from || '';
+            document.getElementById('EffectiveTo').value = opt.dataset.to || '';
+            document.getElementById('FixedChargeScope').value = opt.dataset.fixed || 'PER_BILL';
+        }
+        // set initial values when DOM ready
+        document.addEventListener('DOMContentLoaded', function(){
+            if (document.getElementById('TariffPlanID')) onPlanChange();
+        });
+        </script>
+        <!-- END UPDATED: Plan selector -->
+
 
         <div class="bg-white p-6 rounded-xl shadow-lg relative">
             
@@ -49,61 +122,96 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 3  /* REPLACE_THIS */;    
+                    $customerTypeId = 1  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Water-commercial table-->
+
+            <div id="table-water-commercial" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units WC(Usage Range)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
                     </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 3  /* REPLACE_THIS */;    
+                    $customerTypeId = 2 /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -122,61 +230,42 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 3  /* REPLACE_THIS */;    
+                    $customerTypeId = 3  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -195,61 +284,42 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 3  /* REPLACE_THIS */;    
+                    $customerTypeId = 4  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -268,61 +338,96 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 1  /* REPLACE_THIS */;    
+                    $customerTypeId = 1  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Electricity-Commercial table-->
+
+            <div id="table-electricity-commercial" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EC (Usage Range)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
                     </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 1  /* REPLACE_THIS */;    
+                    $customerTypeId = 2  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -341,61 +446,42 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 1  /* REPLACE_THIS */;    
+                    $customerTypeId = 3  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -414,61 +500,42 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 1  /* REPLACE_THIS */;    
+                    $customerTypeId = 4  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -487,61 +554,96 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 2  /* REPLACE_THIS */;    
+                    $customerTypeId = 1  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Gas-Commercial table-->
+
+            <div id="table-gas-government" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GC(Usage Range)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
                     </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 2  /* REPLACE_THIS */;    
+                    $customerTypeId = 2  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -560,61 +662,42 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 2  /* REPLACE_THIS */;    
+                    $customerTypeId = 3  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -633,61 +716,42 @@
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">00 – 05</td>
-                        <td class="px-4 py-3 whitespace-nowrap">50.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('00 - 05', 50.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">06 – 10</td>
-                        <td class="px-4 py-3 whitespace-nowrap">70.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('06 - 10', 70.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">11 – 15</td>
-                        <td class="px-4 py-3 whitespace-nowrap">90.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">300.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('11 - 15', 90.00, 300.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">16 – 20</td>
-                        <td class="px-4 py-3 whitespace-nowrap">100.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">400.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('16 – 20', 100.00, 400.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">21 – 25</td>
-                        <td class="px-4 py-3 whitespace-nowrap">120.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">500.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('21 – 25', 120.00, 500.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-3 whitespace-nowrap">26 - 30</td>
-                        <td class="px-4 py-3 whitespace-nowrap">150.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">600.00</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button onclick="openEditTariffModal('26 - 30', 150.00, 600.00)" class="text-[#213655] hover:text-[#0b121c] transition mr-2">✏️ Edit</button>
-                            <button class="text-gray-600 hover:text-[#e43e4a] transition">🗑 Delete</button>
-                        </td>
-                    </tr>
-                    </tbody>   
+                    <?php
+                    // set utility & category for this table (place correct numbers for each container)
+                    $utilityId = 2  /* REPLACE_THIS */;    
+                    $customerTypeId = 4  /* REPLACE_THIS */; 
+
+                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
+                            $rateId = $r['RateID'];
+                            $slabStart = $r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
+                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
+                            $fixed = number_format($r['FixedCharge'], 2);
+                            $rateUnitId = $r['RateUnitID'] ?? '';
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . htmlspecialchars($slabLabel) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $ratePerUnit . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . $fixed . "</td>";
+                            // actions: edit + delete form (post)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                                    <button type='button' onclick=\"openEditTariffModal($rateId, $slabStart, '".($slabEnd)."', $ratePerUnit, $fixed, $rateUnitId)\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
+                                    <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
+                                        <input type='hidden' name='action' value='delete_slab'>
+                                        <input type='hidden' name='RateID' value='". $rateId ."'>
+                                        <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                ?>
+                </tbody>   
                 </table>
             </div>
             </div>
@@ -725,30 +789,54 @@
     </main>
 </div>
 
+<!-- REPLACE: Add/Edit tariff modal -->
 <div id="addTariffModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-xs">
-        <h3 class="text-2xl text-[#213655] font-bold mb-4">Add New Tariff</h3>
-        <form>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-medium mb-1">Usage Range (Ex: 51–75 units)</label>
-                <input type="text" id="addUsageRange" class="w-full border border-gray-300 p-2 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-medium mb-1">Rate per Unit (Rs.)</label>
-                <input type="number" step="0.01" id="addRatePerUnit" class="w-full border border-gray-300 p-2 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-            </div>
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-medium mb-1">Fixed Charge (Rs.)</label>
-                <input type="number" step="0.01" id="addFixedCharge" class="w-full border border-gray-300 p-2 rounded-lg focus:ring-[#e5d283] focus:border-blue-500" required>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="closeAddTariffModal()" class="px-3 py-1.5 bg-gray-300 rounded-lg hover:bg-gray-400">Cancel</button>
-                <button type="submit" class="px-3 py-1.5 bg-[#213655] text-white rounded-lg hover:bg-[#162029]">Save Tariff</button>
-            </div>
-        </form>
-    </div>
+  <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-xs">
+    <h3 class="text-2xl text-[#213655] font-bold mb-4" id="modalTitle">Add / Edit Tariff Slab</h3>
+
+    <form method="post" action="tariff-backend.php" onsubmit="return validateAddSlabForm(this);">
+      <input type="hidden" name="action" value="add_slab"> <!-- JS will set this to update_slab when editing -->
+      <input type="hidden" name="TariffPlanID" id="modalTariffPlanID" value="">
+      <input type="hidden" name="RateID" id="modalRateID" value="">
+
+      <div class="mb-4 grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-gray-700 text-sm font-medium mb-1">Slab Start (units)</label>
+          <input type="number" name="SlabStart" id="addSlabStart" class="w-full border p-2 rounded" min="0" required>
+        </div>
+        <div>
+          <label class="block text-gray-700 text-sm font-medium mb-1">Slab End (units) — leave blank for 'Over'</label>
+          <input type="number" name="SlabEnd" id="addSlabEnd" class="w-full border p-2 rounded" min="0">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">Rate per Unit (Rs.)</label>
+        <input type="number" step="0.01" id="addRatePerUnit" name="RatePerUnit" class="w-full border p-2 rounded" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">Fixed Charge (Rs.)</label>
+        <input type="number" step="0.01" id="addFixedCharge" name="FixedCharge" class="w-full border p-2 rounded" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">Rate Unit</label>
+        <select name="RateUnitID" id="addRateUnitID" class="w-full border p-2 rounded">
+          <?php foreach($rateUnits as $ru): ?>
+            <option value="<?= $ru['RateUnitID'] ?>"><?= htmlspecialchars($ru['UnitName']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button type="button" onclick="closeAddTariffModal()" class="px-3 py-1.5 bg-gray-300 rounded-lg hover:bg-gray-400">Cancel</button>
+        <button type="submit" class="px-3 py-1.5 bg-[#213655] text-white rounded-lg hover:bg-[#162029]">Save Tariff</button>
+      </div>
+    </form>
+  </div>
 </div>
+<!-- END REPLACE -->
 
 <div id="categoryManagementModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white p-5 rounded-xl shadow-2xl w-full max-w-xs">
@@ -778,6 +866,13 @@
     // --- Add New Tariff Modal Functions ---
     function openAddTariffModal() {
         // Removes 'hidden' and adds 'flex' to make the modal visible and centered.
+        document.getElementById("modalAction").value = 'add_slab';
+        document.getElementById("modalTariffPlanID").value = (document.getElementById('TariffPlanID') ? document.getElementById('TariffPlanID').value : '');
+        document.getElementById('modalRateID').value = '';
+        document.getElementById('addSlabStart').value = '';
+        document.getElementById('addSlabEnd').value = '';
+        document.getElementById('addRatePerUnit').value = '';
+        document.getElementById('addFixedCharge').value = '';
         document.getElementById("addTariffModal").classList.remove("hidden");
         document.getElementById("addTariffModal").classList.add("flex");
     }
@@ -800,12 +895,48 @@
     }
     
     // --- Edit Tariff Modal Stub (Placeholder function for the table's Edit button) ---
-    function openEditTariffModal(range, rate, fixedCharge) {
-        // This 'alert' is just temporary to prove the data is being passed correctly.
-        alert(`Editing Tariff:\nRange: ${range}\nRate: ${rate}\nFixed Charge: ${fixedCharge}`);
-        // In a final app, you would populate the input fields of the 'addTariffModal' 
-        // with the passed data and change the modal title before opening it.
-        openAddTariffModal(); 
+    function openEditTariffModal(rateId, slabStart, slabEnd, ratePerUnit, fixedCharge, rateUnitId) {
+    // set modal title
+    document.getElementById('modalTitle').innerText = rateId ? 'Edit Tariff Slab' : 'Add Tariff Slab';
+    // populate fields
+    document.getElementById('addSlabStart').value = slabStart !== undefined ? slabStart : '';
+    document.getElementById('addSlabEnd').value = slabEnd !== undefined && slabEnd !== null ? slabEnd : '';
+    document.getElementById('addRatePerUnit').value = ratePerUnit !== undefined ? ratePerUnit : '';
+    document.getElementById('addFixedCharge').value = fixedCharge !== undefined ? fixedCharge : '';
+    document.getElementById('modalRateID').value = rateId || '';
+
+    // set TariffPlanID to currently selected table's plan
+    // we recommend storing the current selected utility & category as dataset on body
+    const tariffPlanHidden = document.getElementById('modalTariffPlanID');
+    const currentUtility = currentUtility; // global var you already have
+    const currentCategory = currentCategory;
+    // We will attempt to find corresponding TariffPlanID via a hidden select (OPTIONAL). If you don't have it, leave blank.
+    tariffPlanHidden.value = document.getElementById('TariffPlanID') ? document.getElementById('TariffPlanID').value : '';
+
+    // set action to update or add
+    const form = document.querySelector('#addTariffModal form');
+    if (rateId) form.querySelector('input[name="action"]').value = 'update_slab';
+    else form.querySelector('input[name="action"]').value = 'add_slab';
+
+    // rate unit
+    if (rateUnitId) document.getElementById('addRateUnitID').value = rateUnitId;
+
+    openAddTariffModal();
+}
+
+    /* Client-side validation before posting */
+    function validateAddSlabForm(form){
+        const start = parseInt(form.SlabStart.value || '0', 10);
+        const endRaw = form.SlabEnd.value;
+        const end = (endRaw === '' ? null : parseInt(endRaw, 10));
+        const rate = parseFloat(form.RatePerUnit.value);
+        if (isNaN(start) || start < 0) { alert('Slab start must be >= 0'); return false; }
+        if (end !== null && end < start) { alert('Slab end must be >= start'); return false; }
+        if (isNaN(rate) || rate < 0) { alert('Rate must be >= 0'); return false; }
+        // TariffPlanID must be set
+        const sel = document.getElementById('TariffPlanID');
+        if(sel) form.TariffPlanID.value = sel.value;
+        return true;
     }
 
     // Toggles which table to show when specific buttons are clicked
