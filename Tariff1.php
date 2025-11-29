@@ -52,7 +52,7 @@
         <!-- UPDATED: Plan selector + Effective date + Fixed charge scope -->
         <?php
         // fetch active plans for current utility/category to populate selector
-            $plans = executeQuery($pdo, "SELECT TariffPlanID, PlanName, UtilityTypeID, EffectiveFrom, EffectiveTo, FixedChargeScope FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
+            $plans = executeQuery($pdo, "SELECT TariffPlanID, PlanName, UtilityTypeID, EffectiveFrom, EffectiveTo FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
         ?>
         <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex items-center justify-between">
             <div class="flex items-center space-x-4">
@@ -75,15 +75,6 @@
                         <input type="date" id="EffectiveTo" name="EffectiveTo" class="border p-2 rounded" />
                     </div>
 
-                    <!-- Fixed charge scope -->
-                    <div class="flex items-center space-x-2">
-                        <label class="text-sm text-gray-600">Fixed Charge</label>
-                        <select name="FixedChargeScope" id="FixedChargeScope" class="border p-2 rounded">
-                            <option value="PER_BILL">Per bill (final slab)</option>
-                            <option value="PER_SLAB">Per slab (each slab's fixed) </option>
-                        </select>
-                    </div>
-
                     <button type="submit" class="px-3 py-1.5 bg-[#213655] text-white rounded hover:bg-[#162029]">Save</button>
                 </form>
             </div>
@@ -96,7 +87,6 @@
             const opt = sel.options[sel.selectedIndex];
             document.getElementById('EffectiveFrom').value = opt.dataset.from || '';
             document.getElementById('EffectiveTo').value = opt.dataset.to || '';
-            document.getElementById('FixedChargeScope').value = opt.dataset.fixed || 'PER_BILL';
         }
         // set initial values when DOM ready
         document.addEventListener('DOMContentLoaded', function(){
