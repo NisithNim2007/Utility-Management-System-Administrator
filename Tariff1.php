@@ -669,7 +669,7 @@
 
             <!--Gas-Commercial table-->
 
-            <div id="table-gas-government" class="hidden">
+            <div id="table-gas-commercial" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
@@ -747,6 +747,7 @@
                     // set utility & category for this table (place correct numbers for each container)
                     $utilityId = 2  /* REPLACE_THIS */;    
                     $customerTypeId = 3  /* REPLACE_THIS */; 
+                    
 
                     $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
@@ -875,9 +876,9 @@
                     <button class="px-3 py-1.5 bg-[#b8c3d6] text-[#213655] rounded-lg shadow hover:bg-gray-400 transition">
                         Reset Table
                     </button>
-                    <button class="px-3 py-1.5 bg-transparent-500 border-2 border-[#213655] text-[#213655] rounded-lg shadow hover:bg-[#213655] hover:text-white transition">
+                    <!--button class="px-3 py-1.5 bg-transparent-500 border-2 border-[#213655] text-[#213655] rounded-lg shadow hover:bg-[#213655] hover:text-white transition">
                         Export Tariff Data
-                    </button>
+                    </button-->
                 </div>
             </div>
 
