@@ -18,19 +18,21 @@ include ('../include/header.php'); ?>
 //search_PHP
  $search = trim($_POST['search'] ?? null);
  $status = $_POST['status'] ?? "";
+ $utility = $_POST['utility'] ?? "";
  $params =[];
  $query="";
 
 
- if(!empty($search) || !empty($status))
+ if(!empty($search) || !empty($status) || !empty($utility))
 {
-    $query="EXEC sp_load_complaint @searchTerm = :searchTerm, @statusID = :statusID";
+    $query="EXEC sp_load_complaint @searchTerm = :searchTerm, @statusID = :statusID, @utility = :utility";
     $params =[
          ':searchTerm' => ($search !== "" ? "%$search%" : NULL),
-         ':statusID' => ($status !== "" ? $status : NULL)
+         ':statusID' => ($status !== "" ? $status : NULL),
+         ':utility' => ($utility !== "" ? $utility : NULL)
     ];
 }else{
-    $query= "EXEC sp_load_complaint @searchTerm= NULL, @statusID = NULL";
+    $query= "EXEC sp_load_complaint @searchTerm= NULL, @statusID = NULL, @utility=NULL";
     $params=[];
 }
 
@@ -81,20 +83,26 @@ $gas = $stats['gas_complaints'];
     </div>
 
     
-    <div class="flex justify-between items-center mb-6 ">
+    <div class="flex gap-20 mb-6 ">
         <h3 class="text-2xl font-semibold mt-10 mb-4 text-[#162029]">Customer Information</h3>
         <!--search bar (customerID/connectionID/complaintID)-->
         
             <form method="POST">
                 <div class="flex w-full max-w-md mt-7">
-                <input type="text" name="search" placeholder="Search here" class="w-full py-2 px-5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-blue-400" value="<?= htmlspecialchars($search ?? '') ?>">
+                <input type="text" name="search" placeholder="ID/Name" class="flex-grow py-2 px-5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-blue-400" value="<?= htmlspecialchars($search ?? '') ?>">
                 <select name="status" class="border px-3 py-2 rounded">
-                    <option value="">All</option>
+                    <option value="" selected>All</option>
                     <option value="1" <?= ($status ?? '')=='1' ? 'selected':'' ?>>Pending</option>
                     <option value="2" <?= ($status?? '')=='2' ? 'selected':'' ?>>In Progress</option>
                 </select>
+                <select name="utility" class="border px-3 py-2 rounded">
+                    <option value="" selected>All</option>
+                    <option value="1" <?= ($status ?? '')=='1' ? 'selected':'' ?>>Electricity</option>
+                    <option value="2" <?= ($status?? '')=='2' ? 'selected':'' ?>>Gas</option>
+                     <option value="3" <?= ($status?? '')=='3' ? 'selected':'' ?>>Water</option>
+                </select>
                 <button class="bg-[#b8c3d6] text-[#0b121c] px-5 rounded-r-lg hover:bg-[#213655] hover:text-white transition" type="submit">Filter</button>
-                 <a href="complaint.php" class="bg-blue-600 text-white px-5 ml-10 py-2 rounded hover:bg-blue-700 transition">Clear</a>
+                 <a href="complaint.php" class="bg-blue-600 text-white px-5 ml-5 py-2 rounded hover:bg-blue-700 transition">Clear</a>
                 </div>
             </form>
         
@@ -274,7 +282,7 @@ function closeComplaintModal() {
 //update status button
 document.querySelector(".bg-purple-600").onclick = function(){
     if(selectedStatus !== "Pending"){
-        alert("Already in progress");
+        alert("Already in progress.Press COMPLETE!");
         return;
     }
 
@@ -286,7 +294,7 @@ document.querySelector(".bg-purple-600").onclick = function(){
 };
 
 document.querySelector(".bg-green-600").onclick = function(){
-     if(!confirm("Are you sure you want to update complaint status as IN PROGRESS?")){
+     if(!confirm("Are you sure you want to update complaint status as COMPLETED?")){
         return;
     }
     updateStatus(3);

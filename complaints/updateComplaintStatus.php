@@ -20,7 +20,7 @@ $query = "EXEC sp_updateComplaintStatus
 $params = [
     ':cid' => $complaintID,
     ':sid' => $newStatus,
-    ':uid' => $userID
+    ':uid' => $_SESSION['UserID']
 ];
 
 $result = executeNonQuery($pdo,$query,$params);

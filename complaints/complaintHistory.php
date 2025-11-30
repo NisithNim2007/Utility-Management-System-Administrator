@@ -14,16 +14,18 @@ include ('../include/header.php'); ?>
 //search_PHP
  $search = trim($_POST['search'] ?? null);
  $status = 3;
+ $utility = $_POST['utility'] ?? "";
  $params =[];
  $query="";
 
 
- if(!empty($search) || !empty($status))
+ if(!empty($search) || !empty($status) || !empty($utility))
 {
-    $query="EXEC sp_load_complaint @searchTerm = :searchTerm, @statusID = :statusID";
+    $query="EXEC sp_load_complaint @searchTerm = :searchTerm, @statusID = :statusID, @utility = :utility";
     $params =[
          ':searchTerm' => ($search !== "" ? "%$search%" : NULL),
-         ':statusID' => ($status !== "" ? $status : NULL)
+         ':statusID' => ($status !== "" ? $status : NULL),
+         ':utility' => ($utility !== "" ? $utility : NULL)
     ];
 }else{
     $query= "EXEC sp_load_complaint @searchTerm= NULL, @statusID = NULL";
@@ -39,10 +41,15 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
     
     <div class="flex justify-between items-center mb-6 ">
         
-        <!--search bar (customerID/connectionID/complaintID)-->
         <form method="POST">
             <div class="flex w-full max-w-md mt-7">
             <input type="text" name="search" placeholder="Search here" class="w-full py-2 px-5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-blue-400" value="<?= htmlspecialchars($search ?? '') ?>">
+             <select name="utility" class="border px-3 py-2 rounded">
+                    <option value="" selected>All</option>
+                    <option value="1" <?= ($utility ?? '')=='1' ? 'selected':'' ?>>Electricity</option>
+                    <option value="2" <?= ($utility?? '')=='2' ? 'selected':'' ?>>Gas</option>
+                     <option value="3" <?= ($utility?? '')=='3' ? 'selected':'' ?>>Water</option>
+                </select>
             <button class="bg-blue-600 text-white px-5 rounded-r-lg hover:bg-blue-700 transition" type="submit">Search</button>
             <a href="complaintHistory.php" class="bg-blue-600 text-white px-5 ml-10 py-2 rounded hover:bg-blue-700 transition">Clear</a>
             </div>   
