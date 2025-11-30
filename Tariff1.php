@@ -53,32 +53,43 @@
         <?php
         // fetch active plans for current utility/category to populate selector
             $plans = executeQuery($pdo, "SELECT TariffPlanID, PlanName, UtilityTypeID, EffectiveFrom, EffectiveTo FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
+            if (!empty($plans)) {
+                $selectedPlan = $plans[0];
+            } else {
+                $selectedPlan = [
+                    'EffectiveFrom' => null,
+                    'EffectiveTo'   => null
+                ];
+            }
+
         ?>
-        <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <label class="text-sm font-medium text-gray-700">Tariff Plan</label>
-                <form method="post" action="tariff-backend.php" id="plan-details-form" class="flex items-center space-x-3">
-                    <input type="hidden" name="action" value="save_plan_details">
-                    <select name="TariffPlanID" id="TariffPlanID" class="border p-2 rounded" onchange="onPlanChange()" required>
-                        <?php foreach($plans as $p): ?>
-                            <option value="<?= $p['TariffPlanID'] ?>" data-from="<?= $p['EffectiveFrom'] ?>" data-to="<?= $p['EffectiveTo'] ?>" data-fixed="<?= $p['FixedChargeScope'] ?>"><?= htmlspecialchars($p['PlanName']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-6">
+    <div class="flex w-full items-center">
+        
+        
 
-                    <!-- Effective dates -->
-                    <div class="flex items-center space-x-2">
-                        <label class="text-sm text-gray-600">Valid From</label>
-                        <input type="date" id="EffectiveFrom" name="EffectiveFrom" class="border p-2 rounded" />
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <label class="text-sm text-gray-600">Valid To</label>
-                        <input type="date" id="EffectiveTo" name="EffectiveTo" class="border p-2 rounded" />
-                    </div>
-
-                    <button type="submit" class="px-3 py-1.5 bg-[#213655] text-white rounded hover:bg-[#162029]">Save</button>
-                </form>
-            </div>
+        <!-- Middle Column: Effective From -->
+        <div class="flex-1 text-left">
+            <span class="text-sm text-gray-600 mr-2">Effective From:</span>
+            <span class="text-sm font-medium text-gray-900">
+                <?= $selectedPlan && $selectedPlan['EffectiveFrom'] 
+                    ? htmlspecialchars($selectedPlan['EffectiveFrom']) 
+                    : '—' ?>
+            </span>
         </div>
+
+        <!-- Right Column: Effective To -->
+        <div class="flex-1 text-left">
+            <span class="text-sm text-gray-600 mr-2">Effective To:</span>
+            <span class="text-sm font-medium text-gray-900">
+                <?= $selectedPlan && $selectedPlan['EffectiveTo'] 
+                    ? htmlspecialchars($selectedPlan['EffectiveTo']) 
+                    : '—' ?>
+            </span>
+        </div>
+
+    </div>
+</div>
 
         <script>
         // UPDATED: populate EffectiveFrom/To fields when plan changes
