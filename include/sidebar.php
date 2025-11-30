@@ -3,7 +3,7 @@
         <ul class="flex flex-col space-y-4 w-full">
             <li><a href="/Utility-Management-System/Utility-Management-System-Administrator/dashboard.php" class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-gray-900 rounded transition">Dashboard</a></li>
             <li><a href="#" class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">Customer Details</a></li>
-            <li><a href="#" class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">Tariff Plans</a></li>
+            <li><a href="/Utility-Management-System/Utility-Management-System-Administrator/Tariff1.php" class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">Tariff Plans</a></li>
             <li><a href="/Utility-Management-System/Utility-Management-System-Administrator/complaints/complaint.php" class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">Complaint Handling</a></li>
             <li><a href="/Utility-Management-System/Utility-Management-System-Administrator/user/user.php" class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">User Management</a></li>
         </ul>
