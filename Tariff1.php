@@ -111,10 +111,27 @@
             <div id="table-water-domestic" class="">
             <!--div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg"-->
             <div class="flex-1 overflow-y-auto overflow-x-auto border border-gray-200 rounded-lg">
+
+                <?php
+                $utilityId = 3  /* REPLACE_THIS */;    
+                $customerTypeId = 1  /* REPLACE_THIS */;
+                
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+
+                $unit = $unitRow['UnitName'] ?? 'units';
+
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -122,11 +139,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 3  /* REPLACE_THIS */;    
-                    $customerTypeId = 1  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -136,14 +148,12 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
 
                             // inside loop, earlier you already set $rateId, $slabStart, $slabEnd etc.
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -160,10 +170,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -187,10 +196,25 @@
 
             <div id="table-water-commercial" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 3  /* REPLACE_THIS */;    
+                $customerTypeId = 2 /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; 
+
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units WC </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units WC (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -198,11 +222,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 3  /* REPLACE_THIS */;    
-                    $customerTypeId = 2 /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -212,12 +231,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -234,10 +251,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -261,10 +277,25 @@
 
             <div id="table-water-government" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 3  /* REPLACE_THIS */;    
+                $customerTypeId = 3  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units WG </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units WG (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -272,11 +303,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 3  /* REPLACE_THIS */;    
-                    $customerTypeId = 3  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -286,12 +312,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -308,10 +332,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -335,10 +358,24 @@
             
             <div id="table-water-nonprofit" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 3  /* REPLACE_THIS */;    
+                $customerTypeId = 4  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units WN </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units WN (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -346,11 +383,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 3  /* REPLACE_THIS */;    
-                    $customerTypeId = 4  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -360,12 +392,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -382,10 +412,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -409,10 +438,24 @@
 
             <div id="table-electricity-domestic" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 1  /* REPLACE_THIS */;    
+                $customerTypeId = 1  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units ED </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units ED (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -420,11 +463,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 1  /* REPLACE_THIS */;    
-                    $customerTypeId = 1  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -434,12 +472,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -456,10 +492,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -483,10 +518,24 @@
 
             <div id="table-electricity-commercial" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 1  /* REPLACE_THIS */;    
+                $customerTypeId = 2  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EC </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EC (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -494,11 +543,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 1  /* REPLACE_THIS */;    
-                    $customerTypeId = 2  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -508,12 +552,11 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
+
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -530,10 +573,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -557,10 +599,24 @@
 
             <div id="table-electricity-government" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 1  /* REPLACE_THIS */;    
+                $customerTypeId = 3  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EG </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EG (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -568,11 +624,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 1  /* REPLACE_THIS */;    
-                    $customerTypeId = 3  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -582,12 +633,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -604,10 +653,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -631,10 +679,24 @@
 
             <div id="table-electricity-nonprofit" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 1  /* REPLACE_THIS */;    
+                $customerTypeId = 4  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EN </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EN (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -642,11 +704,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 1  /* REPLACE_THIS */;    
-                    $customerTypeId = 4  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -656,12 +713,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -678,10 +733,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -705,10 +759,24 @@
 
             <div id="table-gas-domestic" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2  /* REPLACE_THIS */;    
+                $customerTypeId = 1  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GD </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GD (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -716,11 +784,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 2  /* REPLACE_THIS */;    
-                    $customerTypeId = 1  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -730,12 +793,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -752,10 +813,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -779,10 +839,24 @@
 
             <div id="table-gas-commercial" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2  /* REPLACE_THIS */;    
+                $customerTypeId = 2  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GC</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GC (<?= htmlspecialchars($unit) ?>)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -790,11 +864,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 2  /* REPLACE_THIS */;    
-                    $customerTypeId = 2  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -804,12 +873,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -826,10 +893,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -853,10 +919,24 @@
 
             <div id="table-gas-government" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2  /* REPLACE_THIS */;    
+                $customerTypeId = 3  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default                    
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GG </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GG (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -864,12 +944,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 2  /* REPLACE_THIS */;    
-                    $customerTypeId = 3  /* REPLACE_THIS */; 
-                    
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -879,12 +953,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -901,10 +973,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -928,10 +999,25 @@
 
             <div id="table-gas-nonprofit" class="hidden">
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2  /* REPLACE_THIS */;    
+                $customerTypeId = 4  /* REPLACE_THIS */; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+                
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GN </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GN (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
@@ -939,11 +1025,6 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-                    // set utility & category for this table (place correct numbers for each container)
-                    $utilityId = 2  /* REPLACE_THIS */;    
-                    $customerTypeId = 4  /* REPLACE_THIS */; 
-
-                    $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
@@ -953,12 +1034,10 @@
                             $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
                             $ratePerUnit = number_format($r['RatePerUnit'], 2);
                             $fixed = number_format($r['FixedCharge'], 2);
-                            $rateUnitId = $r['RateUnitID'] ?? '';
                             echo "<tr>";
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
                             $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
                             $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-                            $rateUnitId = $r['RateUnitID'] ?? null;
 
                             // formatted strings to display in the table
                             $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
@@ -975,10 +1054,9 @@
                             $jsSlabEnd = json_encode($slabEndForJs);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-                            $jsRateUnitId = json_encode($rateUnitId);
 
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed}, {$jsRateUnitId})\"
+                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
                                     class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
 
                             <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
@@ -1057,16 +1135,6 @@
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-medium mb-1">Fixed Charge (Rs.)</label>
         <input type="number" step="0.01" id="addFixedCharge" name="FixedCharge" class="w-full border p-2 rounded" required>
-      </div>
-
-        <!--######################################################-->
-      <div class="mb-4">
-        <label class="block text-gray-700 text-sm font-medium mb-1">Rate Unit</label>
-        <select name="RateUnitID" id="addRateUnitID" class="w-full border p-2 rounded">
-          <?php foreach($rateUnits as $ru): ?>
-            <option value="<?= $ru['RateUnitID'] ?>"><?= htmlspecialchars($ru['UnitName']) ?></option>
-          <?php endforeach; ?>
-        </select>
       </div>
 
       <div class="flex justify-end space-x-3">
@@ -1150,11 +1218,6 @@
     if (form) {
         form.querySelector('input[name="action"]').value = rateId ? 'update_slab' : 'add_slab';
         form.querySelector('input[name="TariffPlanID"]').value = document.getElementById('modalTariffPlanID').value;
-    }
-
-    // set rate unit select if provided
-    if (rateUnitId !== null && document.getElementById('addRateUnitID')) {
-        document.getElementById('addRateUnitID').value = rateUnitId;
     }
 
     openAddTariffModal();
