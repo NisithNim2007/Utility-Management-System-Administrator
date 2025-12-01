@@ -1030,7 +1030,7 @@
 
 <!-- REPLACE: Add/Edit tariff modal -->
 <div id="addTariffModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-xs">
+  <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-xs">
     <h3 class="text-2xl text-[#213655] font-bold mb-4" id="modalTitle">Add / Edit Tariff Slab</h3>
 
     <form method="post" action="tariff-backend.php" onsubmit="return validateAddSlabForm(this);">
@@ -1044,7 +1044,7 @@
           <input type="number" name="SlabStart" id="addSlabStart" class="w-full border p-2 rounded" min="0" required>
         </div>
         <div>
-          <label class="block text-gray-700 text-sm font-medium mb-1">Slab End (units) — leave blank for 'Over'</label>
+          <label class="block text-gray-700 text-sm font-medium mb-1">Slab End (units)</label>
           <input type="number" name="SlabEnd" id="addSlabEnd" class="w-full border p-2 rounded" min="0">
         </div>
       </div>
@@ -1059,6 +1059,7 @@
         <input type="number" step="0.01" id="addFixedCharge" name="FixedCharge" class="w-full border p-2 rounded" required>
       </div>
 
+        <!--######################################################-->
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-medium mb-1">Rate Unit</label>
         <select name="RateUnitID" id="addRateUnitID" class="w-full border p-2 rounded">
