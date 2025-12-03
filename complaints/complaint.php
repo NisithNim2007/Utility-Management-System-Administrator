@@ -51,58 +51,58 @@ $gas = $stats['gas_complaints'];
     
 ?>
 
-<main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64">
-    <h2 class="text-3xl font-bold text-[#162029] mb-10">Complaint Management</h2>
+<main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64 bg-gradient-to-br from-[#213655] to-[#e5d283]">
+    <h2 class="text-3xl font-semibold text-[#ffffff] p-2 mb-7">Complaint Management</h2>
     
     <!--cards-->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
 
-        <div class="p-4 bg-[#213655] text-center rounded-xl ">
-            <h3 class="text-lg font-bold text-white">Electricity Complaints </h3>
-            <p class="mt-2 text-3xl font-semibold text-white"><?php echo $electricity?> </p>
+        <div class="p-3 border-[2px] border-[#e5d283] text-center rounded-xl ">
+            <h3 class="text-xl font-bold text-[#e5d283]">Electricity Complaints </h3>
+            <p class="p-2 text-3xl font-bold text-[#e5d283]"><?php echo $electricity?> </p>
 
         </div>
 
-        <div class="p-4 bg-[#213655] text-center rounded-xl ">
-            <h3 class="text-lg font-bold text-white">Water Complaints</h3>
-            <p class="mt-2 text-3xl font-semibold text-white"><?php echo $water?> </p>
+        <div class="p-3 border-[2px] border-[#e5d283] text-center rounded-xl ">
+            <h3 class="text-xl font-bold text-[#e5d283]">Water Complaints</h3>
+            <p class="p-2 text-3xl font-bold text-[#e5d283]"><?php echo $water?> </p>
             
         </div>
 
-         <div class="p-4 bg-[#213655] text-center rounded-xl ">
-            <h3 class="text-lg font-bold text-white">Gas Complaints</h3>
-            <p class="mt-2 text-3xl font-semibold text-white"><?php echo $gas?> </p>
+         <div class="p-3 border-[2px] border-[#e5d283] text-center rounded-xl ">
+            <h3 class="text-xl font-bold text-[#e5d283]">Gas Complaints</h3>
+            <p class="p-2 text-3xl font-bold text-[#e5d283]"><?php echo $gas?> </p>
         </div>
 
         <a href="complaintHistory.php">
-        <div class="p-8 bg-[#e5d283] text-center rounded-xl hover:bg-[#e43e4a] cursor-pointer transition">
-            <h3 class="text-lg font-bold text-[#162029] ">Complaint History</h3>
+        <div class="p-8 bg-[#e5d283] text-center rounded-xl hover:bg-[#d4c06f] cursor-pointer transition">
+            <h3 class="text-lg font-bold text-[#162029]">Complaint History</h3>
         </div>
         </a>
 
     </div>
 
     
-    <div class="flex gap-20 mb-6 ">
-        <h3 class="text-2xl font-semibold mt-10 mb-4 text-[#162029]">Customer Information</h3>
+    <div class="flex gap-20 mb-6">
+        <h3 class="text-2xl font-semibold mt-8 mb-4 text-[#ffffff]">Customer Information</h3>
         <!--search bar (customerID/connectionID/complaintID)-->
         
             <form method="POST">
                 <div class="flex w-full max-w-md mt-7">
-                <input type="text" name="search" placeholder="ID/Name" class="flex-grow py-2 px-5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-blue-400" value="<?= htmlspecialchars($search ?? '') ?>">
-                <select name="status" class="border px-3 py-2 rounded">
+                <input type="text" name="search" placeholder="ID/Name" class="flex-grow py-2 px-5 border border-[#b8c3d6] rounded-l-lg focus:outline-none focus:ring-[#213655]" value="<?= htmlspecialchars($search ?? '') ?>">
+                <select name="status" class="border px-3 py-2">
                     <option value="" selected>All</option>
                     <option value="1" <?= ($status ?? '')=='1' ? 'selected':'' ?>>Pending</option>
                     <option value="2" <?= ($status?? '')=='2' ? 'selected':'' ?>>In Progress</option>
                 </select>
-                <select name="utility" class="border px-3 py-2 rounded">
+                <select name="utility" class="border px-3 py-2">
                     <option value="" selected>All</option>
                     <option value="1" <?= ($status ?? '')=='1' ? 'selected':'' ?>>Electricity</option>
                     <option value="2" <?= ($status?? '')=='2' ? 'selected':'' ?>>Gas</option>
                      <option value="3" <?= ($status?? '')=='3' ? 'selected':'' ?>>Water</option>
                 </select>
-                <button class="bg-[#b8c3d6] text-[#0b121c] px-5 rounded-r-lg hover:bg-[#213655] hover:text-white transition" type="submit">Filter</button>
-                 <a href="complaint.php" class="bg-blue-600 text-white px-5 ml-5 py-2 rounded hover:bg-blue-700 transition">Clear</a>
+                <button class="bg-[#162029] text-[#ffffff] px-5 rounded-r-lg hover:bg-[#162029]/60 transition" type="submit">Filter</button>
+                 <a href="complaint.php" class="bg-[#162029] text-white px-5 ml-5 py-2 rounded hover:bg-[#162029]/60 transition">Clear</a>
                 </div>
             </form>
         
@@ -112,19 +112,19 @@ $gas = $stats['gas_complaints'];
         
 
     <!--display-->
-       
-        <table class="w-full bg-white rounded-xl shadow border-4  border-collapse overflow-hidden table-fixed"> <!--table-fixed-->
+    <div class="bg-[#ffffff] p-[0px] rounded-xl">
+        <table class="w-full bg-[#f0f0f0] rounded-xl border-collapse  overflow-hidden table-fixed"> <!--table-fixed-->
         <thead>
-            <tr class="bg-[#f0f0f0] text-left text-[#162029]">
-            <th class="p-3 w-32">Complaint Id</th>
+            <tr class="bg-[#213655] text-left text-[#ffffff]">
+            <th class="p-3 w-32 text-center">Complaint Id</th>
             <!--<th class="p-3 w-32">Customer Id</th>-->
-            <th class="p-3 w-50">Name</th>
+            <th class="p-3 w-50 text-center">Name</th>
             <!--<th class="p-3 w-32">Connection Id</th>-->
-            <th class="p-3 w-32">Utility Type</th>
-            <th class="p-3 w-85">Description</th>
-            <th class="p-3 w-32">Date</th>
-            <th class="p-3 w-32">Status</th>
-            <th class="p-3 w-32">View</th>
+            <th class="p-3 w-32 text-center">Utility Type</th>
+            <th class="p-3 w-85 text-center">Description</th>
+            <th class="p-3 w-32 text-center">Date</th>
+            <th class="p-3 w-32 text-center">Status</th>
+            <th class="p-3 w-32 text-center">View</th>
         </tr> 
         </thead>   
         <tbody> 
@@ -150,9 +150,9 @@ $gas = $stats['gas_complaints'];
 
                         <!--view button-->
                         <td class="p-3">
-                            <button class="bg-blue-800 text-white px-4 py-1 rounded-lg hover:bg-blue-700 transition ml-5" 
+                            <button class="bg-[#213655] text-white px-4 py-1 rounded-lg hover:bg-[#162029] transition ml-5" 
                             onclick="openComplaintModal(
-                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['CustomerName'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'],ENT_QUOTES)?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
+                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['CustomerName'])?>','<?= htmlspecialchars($row['NIC'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'],ENT_QUOTES)?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
                                 '<?= htmlspecialchars($row['UtilityTypeName'])?>','<?= htmlspecialchars($row['ComplaintStatusName'])?>')">View</button>
                         </td>
                     </tr>
@@ -166,7 +166,7 @@ $gas = $stats['gas_complaints'];
 
 
  </table>       
-
+    </div>
 </main>
 
  </div>
@@ -194,6 +194,11 @@ $gas = $stats['gas_complaints'];
             <tr class="boarder-b ">
                 <td class="font-bold py-3 px-2">Customer Name:</td>
                 <td id="modalCustomerName"></td>
+            </tr>
+
+            <tr class="boarder-b ">
+                <td class="font-bold py-3 px-2">NIC:</td>
+                <td id="modalNIC"></td>
             </tr>
         
            <tr class="boarder-b ">
@@ -229,7 +234,7 @@ $gas = $stats['gas_complaints'];
         <div class="flex gap-6">
             <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Complete</button>
             <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Update</button>
-            <button onclick="closeComplaintModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+            <button onclick="closeComplaintModal()" class="bg-[#b8c3d6] text-[#0b121c] px-4 py-2 rounded hover:bg-[#b8c3d6]/50">Close</button>
         </div>
 
     </div>
@@ -240,7 +245,7 @@ $gas = $stats['gas_complaints'];
 let selectedComplaintID = null;
 let selectedStatus = null;
 
-function openComplaintModal(id, customerId,customerName, connectionId, description,date,utilityType, status ) {
+function openComplaintModal(id, customerId,customerName,customerNIC, connectionId, description,date,utilityType, status ) {
 
     selectedComplaintID = id;
     selectedStatus = status;
@@ -248,8 +253,10 @@ function openComplaintModal(id, customerId,customerName, connectionId, descripti
     document.getElementById("modalComplaintId").innerText = id;
     document.getElementById("modalCustomerId").innerText = customerId;
     document.getElementById("modalCustomerName").innerText = customerName;
+    document.getElementById("modalNIC").innerText = customerNIC;
     document.getElementById("modalConnectionId").innerText = connectionId;
     document.getElementById("modalDescription").innerText = description;
+
 
     const dt =  new Date(date);
     const formatDt = dt.toLocaleString('en-GB', {

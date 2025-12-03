@@ -36,42 +36,42 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
  
 ?>
 
-<main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64">
-    <h2 class="text-3xl font-semibold mb-6">Complaint History</h2>
+<main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64 bg-gradient-to-br from-[#213655] to-[#e5d283]">
+    <h2 class="text-3xl font-semibold p-2 text-[#ffffff]">Complaint History</h2>
     
     <div class="flex justify-between items-center mb-6 ">
         
         <form method="POST">
             <div class="flex w-full max-w-md mt-7">
-            <input type="text" name="search" placeholder="Search here" class="w-full py-2 px-5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-blue-400" value="<?= htmlspecialchars($search ?? '') ?>">
-             <select name="utility" class="border px-3 py-2 rounded">
+            <input type="text" name="search" placeholder="Search here" class="flex-grow py-2 px-5 border border-[#b8c3d6] rounded-l-lg focus:outline-none focus:ring-[#213655]" value="<?= htmlspecialchars($search ?? '') ?>">
+             <select name="utility" class="border px-3 py-2 px-4">
                     <option value="" selected>All</option>
                     <option value="1" <?= ($utility ?? '')=='1' ? 'selected':'' ?>>Electricity</option>
                     <option value="2" <?= ($utility?? '')=='2' ? 'selected':'' ?>>Gas</option>
                      <option value="3" <?= ($utility?? '')=='3' ? 'selected':'' ?>>Water</option>
                 </select>
-            <button class="bg-blue-600 text-white px-5 rounded-r-lg hover:bg-blue-700 transition" type="submit">Search</button>
-            <a href="complaintHistory.php" class="bg-blue-600 text-white px-5 ml-10 py-2 rounded hover:bg-blue-700 transition">Clear</a>
+            <button class="bg-[#162029] text-white px-5 rounded-r-lg hover:bg-[#162029]/60 transition" type="submit">Search</button>
+            <a href="complaintHistory.php" class="bg-[#162029] text-white px-5 ml-10 py-2 rounded hover:bg-[#162029]/60 transition">Clear</a>
             </div>   
         </form>
             
     </div>
 
 
-
+    <div class="bg-[#ffffff] p-[0px] rounded-xl">
   <!--display-->  
-  <table class="w-full bg-white rounded-xl shadow border-4 boarder-collapse overflow-hidden table-fixed">
+  <table class="w-full bg-[#f0f0f0] rounded-xl boarder-collapse overflow-hidden table-fixed">
         <thead>
-            <tr class="bg-[#f0f0f0] text-left text-[#162029]">
-            <th class="p-3 w-32">Complaint Id</th>
+            <tr class="bg-[#213655] text-left text-[#ffffff]">
+            <th class="p-3 w-32 text-center">Complaint Id</th>
             <!--<th class="p-3 w-32">Customer Id</th>-->
-            <th class="p-3 w-50">Name</th>
+            <th class="p-3 w-50 text-center">Name</th>
             <!--<th class="p-3 w-32">Connection Id</th>-->
-            <th class="p-3 w-32">Utility Type</th>
-            <th class="p-3 w-85">Description</th>
-            <th class="p-3 w-32">Date</th>
-            <th class="p-3 w-32">Status</th>
-            <th class="p-3 w-32">View</th>
+            <th class="p-3 w-32 text-center">Utility Type</th>
+            <th class="p-3 w-85 text-center">Description</th>
+            <th class="p-3 w-32 text-center">Date</th>
+            <th class="p-3 w-32 text-center">Status</th>
+            <th class="p-3 w-32 text-center">View</th>
         </tr> 
         </thead>   
         <tbody> 
@@ -91,9 +91,9 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
 
                         <!--view button-->
                         <td class="p-3">
-                            <button class="bg-blue-800 text-white px-4 py-1 rounded-lg hover:bg-blue-700 transition ml-5" 
+                            <button class="bg-[#213655] text-white px-4 py-1 rounded-lg hover:bg-[#162029] transition ml-5" 
                             onclick="openComplaintModal(
-                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['CustomerName'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'],ENT_QUOTES)?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
+                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['CustomerName'])?>','<?= htmlspecialchars($row['NIC'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'],ENT_QUOTES)?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
                                 '<?= htmlspecialchars($row['ComplaintStatusName'])?>' , '<?= htmlspecialchars($row['UtilityTypeName'])?>')">View</button>
                         </td>
                     </tr>
@@ -138,6 +138,11 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
                 <td class="font-bold py-3 px-2">Customer Name:</td>
                 <td id="modalCustomerName"></td>
             </tr>
+
+             <tr class="boarder-b ">
+                <td class="font-bold py-3 px-2">NIC:</td>
+                <td id="modalNIC"></td>
+            </tr>
         
            <tr class="boarder-b ">
                 <td class="font-bold py-3 px-2">Connection Id:</td>
@@ -169,7 +174,7 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
             </tbody> 
         </table>
 
-            <button onclick="closeComplaintModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+            <button onclick="closeComplaintModal()" class="bg-[#b8c3d6] text-[#0b121c] px-4 py-2 rounded hover:bg-[#b8c3d6]/50">Close</button>
         </div>
 
     </div>
@@ -177,10 +182,11 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
 </div>
 
 <script>
-function openComplaintModal(id, customerId, customerName, connectionId, description,date, status, utilityType) {
+function openComplaintModal(id, customerId, customerName,customerNIC, connectionId, description,date, status, utilityType) {
     document.getElementById("modalComplaintId").innerText = id;
     document.getElementById("modalCustomerId").innerText = customerId;
     document.getElementById("modalCustomerName").innerText = customerName;
+    document.getElementById("modalNIC").innerText = customerNIC;
     document.getElementById("modalConnectionId").innerText = connectionId;
     document.getElementById("modalDescription").innerText = description;
 
