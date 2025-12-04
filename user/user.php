@@ -1,6 +1,5 @@
 <?php 
 session_start();
-//check if logged
 if(!isset($_SESSION['Username'])){
     header("Location: .././login.php");
     exit;
@@ -19,22 +18,20 @@ include ('../include/header.php'); ?>
  if(!empty($search))
 {
     $query="select * from vw_UserDetails
-    where cast(UserID as nvarchar(50)) like ?
+    where UserID = ?
     or Username like ?
     or RoleName like ?
     or FirstName like ?
     or MiddleName like ?
     or LastName like ?";
 
-    $search_val = "%$search%";
-
     $params =[
-         $search_val,
-         $search_val,
-         $search_val,
-         $search_val,
-         $search_val,
-         $search_val,
+         $search,
+        "%$search%",
+        "%$search%",
+        "%$search%",
+        "%$search%",
+        "%$search%",
 
     ];
 }
