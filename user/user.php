@@ -21,14 +21,21 @@ include ('../include/header.php'); ?>
     $query="select * from vw_UserDetails
     where cast(UserID as nvarchar(50)) like ?
     or Username like ?
-    or RoleName like ?";
+    or RoleName like ?
+    or FirstName like ?
+    or MiddleName like ?
+    or LastName like ?";
 
     $search_val = "%$search%";
 
     $params =[
          $search_val,
          $search_val,
-         $search_val
+         $search_val,
+         $search_val,
+         $search_val,
+         $search_val,
+
     ];
 }
 else{
@@ -42,8 +49,8 @@ $user_load = executeQuery($pdo,$query,$params,false);
  
 ?>
 
-<main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64">
-    <h2 class="text-3xl font-semibold mb-6">User Management</h2>
+<main class="flex-1 p-5 overflow-y-auto min-h-screen ml-64 bg-gradient-to-br from-[#213655] to-[#e5d283]">
+    <h2 class="text-3xl text-[#ffffff] font-semibold p-2">User Management</h2>
     
     <div class="flex justify-between items-center mb-6 ">
         
@@ -52,41 +59,43 @@ $user_load = executeQuery($pdo,$query,$params,false);
             <form method="POST">
             <div class="flex w-full max-w-md mt-7">
             <input type="text" name="search" placeholder="Search here" value="<?= htmlspecialchars($search ?? '') ?>"
-            class="w-full py-2 px-5 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-blue-400">
-            <button class="bg-blue-600 text-white px-5 rounded-r-lg hover:bg-blue-700 transition">Search</button>
-            <a href="user.php" class="bg-blue-600 text-white px-5 ml-10 py-2 rounded hover:bg-blue-700 transition">Clear</a>
+            class="w-full py-2 px-5 border border-[#b8c3d6] rounded-l-lg focus:outline-none focus:ring-[#213655]">
+            <button class="bg-[#162029] text-white px-5 rounded-r-lg hover:bg-[#162029]/60 transition">Search</button>
+            <a href="user.php" class="bg-[#162029] text-white px-5 ml-10 py-2 rounded hover:bg-[#162029]/60 transition">Clear</a>
             </div>   
         </form>
         </div>
         
-         <button class="bg-green-600 text-white p-5 rounded-lg text-xl font-semibold hover:bg-green-700 transition">Add User</button>
-
+        <a href="addUser.php">
+         <button class="bg-[#e5d283] text-[#0b121c] px-9 py-3 rounded-lg text-xl font-semibold hover:bg-[#d4c06f] transition">Add User</button>
+        </a>
         
             
     </div>
 
 
 
+    <div class="bg-[#ffffff] p-[0px] rounded-xl">
   <!--display-->  
-  <table class="w-full bg-white rounded-xl shadow boarder-collapse overflow-hidden">
+  <table class="w-full bg-[#f0f0f0] rounded-xl border-collapse overflow-hidden ">
         <thead>
-            <tr class="bg-gray-700 text-left text-white">
-            <th class="p-3 w-20">User Id</th>
-            <th class="p-3 w-32">Name</th>
-            <th class="p-3 w-32">Username</th>
-            <th class="p-3 w-32">Role</th>
-            <th class="p-3 w-[300px]">Email</th>
-            <th class="p-3 w-32">Registration Date</th>
-            <th class="p-3 w-32">Password</th>
-            <th class="p-3 w-32">Account</th>
+            <tr class="bg-[#213655] text-left text-white">
+            <th class="p-3 w-24">User Id</th>
+            <th class="p-3 w-[250px] text-center">Name</th>
+            <th class="p-3 w-[150px] text-center">Username</th>
+            <th class="p-3 w-[120px] text-center">Role</th>
+            <th class="p-3 w-[250px] text-center">Email</th>
+            <th class="p-3 w-[140px] text-center">Registration Date</th>
+            <th class="p-3 w-[100px] text-center">Password</th>
+            <th class="p-3 w-[100px] text-center">Account</th>
         </tr> 
         </thead>   
         <tbody> 
             <?php if(!empty($user_load)): ?>
                 <?php foreach($user_load as $row): ?>
-                    <tr class="border-b h-12">
+                    <tr class="border-b h-12 border-[#b8c3d6] hover:bg-[#b8c3d6]/20">
                         <td class="p-3"><?= htmlspecialchars($row['UserID'])?></td>
-                         <td class="p-3"><?= htmlspecialchars($row['FirstName']. ' ' . $row['LastName'])?></td>
+                         <td class="p-3"><?= htmlspecialchars($row['FirstName']. ' ' . $row['MiddleName']. ' '. $row['LastName'])?></td>
                         <td class="p-3"><?= htmlspecialchars($row['Username'])?></td>
                         <td class="p-3"><?= htmlspecialchars($row['RoleName'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['Email'])?></td>
@@ -94,12 +103,12 @@ $user_load = executeQuery($pdo,$query,$params,false);
                         <td class="p-3">
 
                     <!--pwd update-->
-                            <button class="bg-blue-800 text-white px-4 py-1 rounded-lg hover:bg-blue-700 transition ml-5" 
+                            <button class="bg-[#213655] text-white px-4 py-1 rounded-lg hover:bg-[#162029] transition ml-5" 
                             onclick="openPasswordModal(<?= $row['UserID'] ?>, '<?= addslashes($row['Username']) ?>')">Update</button>
                         </td>
                     <!-- Acc status-->
                         <td class="p-3">
-                            <select onchange="updateStatus(<?= $row['UserID'] ?>,this.value)" class="border p-1 rounded">
+                            <select onchange="updateStatus(<?= $row['UserID'] ?>,this.value)" class="border border-[#b8c3d6] p-1 rounded focus:ring-2 focus:ring-[#213655]">
                                 <option value="1" <?= $row['IsActive']==1? 'selected' : '' ?>>Active</option>
                                 <option value="0" <?= $row['IsActive']==0? 'selected' : '' ?>>Deactive</option>
                             </select>
@@ -116,7 +125,7 @@ $user_load = executeQuery($pdo,$query,$params,false);
 
  </table>       
 
-
+    </div>
 
 </main>
 
@@ -127,10 +136,10 @@ $user_load = executeQuery($pdo,$query,$params,false);
  <div id="pwd-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
     <div class="bg-white p-6 rounded-lg w-96">
         <h2 class="text-lg font-bold mb-4">Update password for: <span id=pwd-modal-username></span></h2>
-        <input type="text" id="pwd-new" type="password" placeholder="New password" class="border p-2 w-full mb-4 rounded">
+        <input id="pwd-new" type="password" placeholder="New password" class="border p-2 w-full mb-4 rounded">
         <div class="flex justify-end">
-            <button onclick="PasswordUpdate()" class="bg-blue-800 text-white px-4 py-1 rounded-lg hover:bg-blue-700 transition mr-2">Update</button>
-            <button onclick="closeModal()" class="bg-gray-400 px-4 py-1 rounded-lg hover:bg-gray-300 transition">Cancel</button>
+            <button onclick="PasswordUpdate()" class="bg-[#213655] text-white px-4 py-1 rounded-lg hover:bg-[#162029] transition mr-2">Update</button>
+            <button onclick="closeModal()" class="bg-[#b8c3d6] text-[#0b121c] px-4 py-1 rounded-lg hover:bg-[#a5b3c9] transition">Cancel</button>
         </div>
     </div>
  </div>
@@ -151,12 +160,17 @@ $user_load = executeQuery($pdo,$query,$params,false);
 
  async function PasswordUpdate() {
     const pwd= document.getElementById('pwd-new').value.trim();
-    if(!pwd || pwd.length<8) return alert('Passwordmust be atleast 8 characters')
+    if(!pwd || pwd.length<3) return alert('Password must be atleast 3 characters')
 
+    if(!confirm('Are you sure you want to update this password?')){
+        return;
+    }
+    
     //const body= {userId: currentUserForPwd, newPassword: pwd};
 
+
     try{
-        const res = await fetch("/update_password.php",{
+        const res = await fetch("update_password.php",{
             method: "POST",
             headers: {"Content-Type" : "application/json"},
             body: JSON.stringify({
@@ -171,26 +185,36 @@ $user_load = executeQuery($pdo,$query,$params,false);
             alert("Password updated successfully.");
             closeModal();
         }else{
-            alert("Error: " + data.message);
+            alert("Failed to update password. Please try again later.");
+            console.error("DB Error: " + data.message);
         }
  } catch(err){
-        console.err(err);
-        alert("Request failed. CHeck console.");
+        console.error(err);
+        alert("Request failed. Check console.");
  } 
  
 }
 
 
 async function updateStatus(userId, status){
+    
+    if(!confirm('Are you sure you want to update status of this user account?')){
+        return;
+    }
+
     try{
-        const res = await fetch('/update_account.php',{
+        const res = await fetch('update_account.php',{
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({userId: userId, isActive:parseInt(status)})
         });
         const data= await res.json();
         if(!data.success){
-            alert('Error updating status: ' + data.message);
+            alert('Failed to update account status. Please try again later.');
+            console.error('Error updating status: ' + data.message);
+        }
+        else{
+            alert("User account updated successfully");
         }
     }catch (err){
         console.error(err);

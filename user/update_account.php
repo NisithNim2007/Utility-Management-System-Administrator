@@ -1,10 +1,10 @@
 <?php
 session_start();
 if(!isset($_SESSION['Username'])){
-    http_response_code(401);
-    echo json_encode(['success'=>false, 'message'=>'Unauthorized']);
+    header("Location: ../login.php");
     exit;
 }
+
 
 include('../include/db.php');
 
@@ -25,7 +25,8 @@ try{
 
     echo json_encode(['success'=>true]);
 }catch(PDOException $e){
-    echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
+    echo json_encode(['success'=>false, 'message'=>'Failes to update account status. Please try again later.']);
+    error_log("DB error in updat_account.php: " . $e->getMessage());
 }
 
 ?>

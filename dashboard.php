@@ -25,13 +25,20 @@ $gas = $stats['gas_conns'];
 //recent complaints
 $x= "SELECT * FROM vw_recentComplaint WHERE ComplaintStatusID in (1,2)";
 $r_complaints = executeQuery($pdo,$x,[],false);
+
+//total cuatomers/users count
+$c_count =executeQuery($pdo,"SELECT COUNT(*) AS cnt FROM Customers",[],true);
+$c_count = isset($c_count['cnt']) ? (int)$c_count['cnt'] : 0;
+
+$u_count =executeQuery($pdo,"SELECT COUNT(*) AS usr FROM Users",[],true);
+$u_count = isset($u_count['usr']) ? (int)$u_count['usr'] : 0;
 ?>
 
 
-<main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64">
-    <div class="flex flex-cols justify-between">
-        <h2 class="text-3xl font-bold text-[#162029]">Dashboard overview</h2>
-        <h2 class="text-3xl font-bold mb-10 text-gray-900">Welcome <?php echo htmlspecialchars($_SESSION['Username']); ?> </h2>
+<main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64 bg-gradient-to-br from-[#213655] to-[#e5d283]">
+    <div class="flex flex-cols justify-between mb-10">
+        <h2 class="text-3xl font-semibold p-2 text-[#ffffff]">Dashboard overview</h2>
+        <h2 class="text-3xl font-bold mb-10 text-[#ffffff]">Welcome Back, <?php echo htmlspecialchars($_SESSION['Username']); ?> </h2>
     </div>
     
     
@@ -40,20 +47,20 @@ $r_complaints = executeQuery($pdo,$x,[],false);
     
         <div class="p-8 bg-[#e5d283] text-center rounded-xl w-full ">
             <h3 class="text-xl font-semibold text-[#213655]">Total Connections</h3>
-            <p class="mt-2 text-3xl font-bold text-[#213655]"><?php echo $tot_count ?></p>
+            <p class="text-3xl font-bold text-[#213655]"><?php echo $tot_count ?></p>
         </div>
 
-        <div class="p-8 bg-[#213655] text-center rounded-xl w-full">
+        <div class="p-8 bg-[#162029] text-center rounded-xl w-full">
             <h3 class="text-xl font-semibold text-white">Electricity Connections</h3>
              <p class="mt-2 text-3xl font-bold text-white"><?php echo $electricity ?></p>
         </div>
 
-         <div class="p-8 bg-[#213655] text-center rounded-xl  w-full">
+         <div class="p-8 bg-[#162029] text-center rounded-xl  w-full">
             <h3 class="text-xl font-semibold text-white">Water Connections</h3>
              <p class="mt-2 text-3xl font-bold text-white"><?php echo $water ?></p>
         </div>
 
-        <div class="p-8 bg-[#213655] text-center rounded-xl w-full">
+        <div class="p-8 bg-[#162029] text-center rounded-xl w-full">
             <h3 class="text-xl font-semibold text-white">Gas Connections</h3>
              <p class="mt-2 text-3xl font-bold text-white"><?php echo $gas ?></p>
         </div>
@@ -64,18 +71,18 @@ $r_complaints = executeQuery($pdo,$x,[],false);
 
    <!--recent complaint display-->
 
-        <div class="flex-1 bg-white shadow rounded-xl p-6 overflow-y-auto">
-            <a class="text-xl font-bold mb-5 text-blue-800 cursor-pointer hover:underline hover:text-blue-600">Recent complaints</a>
+        <div class="flex-1 bg-[#f0f0f0] shadow-lg rounded-xl p-6 overflow-y-auto">
+            <a class="text-xl font-bold mb-8 text-[#213655] cursor-pointer hover:underline hover:text-blue-600">Recent complaints</a>
             <div class="space-y-4">
                 <?php if(!empty($r_complaints)) : ?>
                     <?php foreach ($r_complaints as $r): ?>
-                        <div class="border-b pb-3">
+                        <div class="border-b p-3">
                             <div class="flex justify-between">
                                 <span class="font-semibold text-[#162029]">ID: <?= $r['ComplaintID']; ?></span>
-                                <span class="text-sm text-gray-500"><?= date('Y-m-d',strtotime($r['ComplaintDate'])); ?></span>
+                                <span class="text-sm text-[#213655]"><?= date('Y-m-d',strtotime($r['ComplaintDate'])); ?></span>
                             </div>
 
-                            <p class="text-sm text-gray-700 mt-1 truncate">
+                            <p class="text-sm text-[#162029] mt-1 truncate">
                                 <?= htmlspecialchars($r['ComplaintDescription']); ?>
                             </p>
 
@@ -90,15 +97,29 @@ $r_complaints = executeQuery($pdo,$x,[],false);
 
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p class="text-gray-500 text-sm">No recent complaints.</p>
+                        <p class="text-[#213655] text-sm">No recent complaints.</p>
                     <?php endif; ?>
             </div> 
         </div>
 
-        <div class="flex flex-col gap-4">
-            <button class="bg-blue-900 text-white font-semibold py-4 px-6 rounded shadow hover:bg-blue-700 transition">Add new customer</button>
-            <button class="bg-blue-900 text-white font-semibold py-4 px-6 rounded shadow hover:bg-blue-700 transition">Add new tariff plan</button>
-            <button class="bg-blue-900 text-white font-semibold py-4 px-6 rounded shadow hover:bg-blue-700 transition">Add new user</button>
+        <div class="flex flex-col gap-5 items-center py-3">
+                <div class="px-6 py-8 border-[#e5d283] border-[3px] text-center rounded-xl w-full ">
+            <h3 class="text-xl font-bold text-[#213655]">Total Customers</h3>
+            <p class="mt-2 text-3xl font-bold text-[#213655]"><?php echo $c_count ?></p>
+        </div>
+
+        <div class="px-6 py-8 border-[#e5d283] border-[3px] text-center rounded-xl w-full">
+            <h3 class="text-xl font-bold text-[#213655]">Total Users</h3>
+             <p class="mt-2 text-3xl font-bold text-[#213655]"><?php echo $u_count ?></p>
+        </div>
+
+        </div>
+
+        <div class="flex flex-col gap-6">
+            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition">Add new customer</button>
+            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition">Add new tariff plan</button>
+            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition"><a href="user/addUser.php">Add new user</a></button>
+            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition">Add new connectiom</button>
         </div>
         
    </div>

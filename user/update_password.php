@@ -1,8 +1,7 @@
 <?php
 session_start();
 if(!isset($_SESSION['Username'])){
-    http_response_code(401);
-    echo json_encode(['success'=>false, 'message'=>'Unauthorized']);
+     header("Location: ../login.php");
     exit;
 }
 
@@ -13,8 +12,8 @@ $data = json_decode(file_get_contents('php://input'), true);
 $userId = intval($data['userId'] ?? 0);
 $newPassword = trim($data['newPassword'] ?? '');
 
-if(!$userId || strlen($newPassword) < 8){
-    echo json_encode(['success'=>false, 'message'=>'Invalid input']);
+if(!$userId || strlen($newPassword) < 3){
+    echo json_encode(['success'=>false, 'message'=>'Invalid input.Ensure password has minimum 3 characters.']);
     exit;
 }
 
@@ -26,7 +25,8 @@ try{
 
     echo json_encode(['success'=>true]);
 }catch(PDOException $e){
-    echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
+    echo json_encode(['success'=>false, 'message'=> 'Failed to update password. Please try again later']);
+    error_log("DB error in update_password.php: " . $e->getMessage());
 }
 
 ?>
