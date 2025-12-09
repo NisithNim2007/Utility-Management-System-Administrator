@@ -1,6 +1,5 @@
 <?php
 session_start();
-//check if logged
 if(!isset($_SESSION['Username'])){
     header("Location: .././login.php");
     exit;
@@ -12,21 +11,15 @@ include ('./include/header.php'); ?>
 <?php include ('./include/sidebar.php'); 
      include('./include/db.php');
 
-//fetch values from db (counts)
 $stats = executeQuery($pdo,"EXEC sp_dashCount",[],true);
-
-
-//assign to var
 $tot_count = $stats['tot_consumers'];
 $electricity = $stats['ele_conns'];
 $water = $stats['water_conns'];
 $gas = $stats['gas_conns'];
 
-//recent complaints
 $x= "SELECT * FROM vw_recentComplaint WHERE ComplaintStatusID in (1,2)";
 $r_complaints = executeQuery($pdo,$x,[],false);
 
-//total cuatomers/users count
 $c_count =executeQuery($pdo,"SELECT COUNT(*) AS cnt FROM Customers",[],true);
 $c_count = isset($c_count['cnt']) ? (int)$c_count['cnt'] : 0;
 
@@ -41,8 +34,6 @@ $u_count = isset($u_count['usr']) ? (int)$u_count['usr'] : 0;
         <h2 class="text-3xl font-bold mb-10 text-[#ffffff]">Welcome Back, <?php echo htmlspecialchars($_SESSION['Username']); ?> </h2>
     </div>
     
-    
-    <!--cards-->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 w-full">
     
         <div class="p-8 bg-[#e5d283] text-center rounded-xl w-full ">
@@ -68,8 +59,6 @@ $u_count = isset($u_count['usr']) ? (int)$u_count['usr'] : 0;
     </div>
 
    <div class="flex mt-10 gap-10 flex-1">
-
-   <!--recent complaint display-->
 
         <div class="flex-1 bg-[#f0f0f0] shadow-lg rounded-xl p-6 overflow-y-auto">
             <a class="text-xl font-bold mb-8 text-[#213655] cursor-pointer hover:underline hover:text-blue-600">Recent complaints</a>
@@ -121,14 +110,8 @@ $u_count = isset($u_count['usr']) ? (int)$u_count['usr'] : 0;
             <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition"><a href="user/addUser.php">Add new user</a></button>
             <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition">Add new connectiom</button>
         </div>
-        
    </div>
-
-   
-
-
 </main>
-
  </div>
 
 
