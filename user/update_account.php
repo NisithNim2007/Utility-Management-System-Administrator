@@ -4,8 +4,6 @@ if(!isset($_SESSION['Username'])){
     header("Location: ../login.php");
     exit;
 }
-
-
 include('../include/db.php');
 
 $data = json_decode(file_get_contents('php://input'), true);
@@ -17,8 +15,6 @@ if(!$userId || !isset($isActive)){
     echo json_encode(['success'=>false, 'message'=>'Invalid input']);
     exit;
 }
-
-
 try{
     $stmt = $pdo-> prepare("EXEC sp_updateAcc @UserID=?, @isActive=?");
     $stmt->execute([$userId,$isActive]);

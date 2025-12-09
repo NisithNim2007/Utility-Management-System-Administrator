@@ -1,29 +1,25 @@
 <?php 
 session_start();
-//check if logged
 if(!isset($_SESSION['Username'])){
     header("Location: .././login.php");
     exit;
 }
-
 include ('../include/header.php'); ?>
 <div class="flex">
 <?php include ('../include/sidebar.php'); 
     include('../include/db.php');
 
-//search_PHP
  $search = trim($_POST['search'] ?? null);
  $status = 3;
  $utility = $_POST['utility'] ?? "";
  $params =[];
  $query="";
 
-
  if(!empty($search) || !empty($status) || !empty($utility))
 {
     $query="EXEC sp_load_complaint @searchTerm = :searchTerm, @statusID = :statusID, @utility = :utility";
     $params =[
-         ':searchTerm' => ($search !== "" ? "%$search%" : NULL),
+         ':searchTerm' => ($search !== "" ? $search : NULL),
          ':statusID' => ($status !== "" ? $status : NULL),
          ':utility' => ($utility !== "" ? $utility : NULL)
     ];
@@ -32,18 +28,15 @@ include ('../include/header.php'); ?>
     $params=[];
 }
 $complaints_his = executeQuery($pdo,$query,$params,false);
-    
- 
 ?>
 
 <main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64 bg-gradient-to-br from-[#213655] to-[#e5d283]">
     <h2 class="text-3xl font-semibold p-2 text-[#ffffff]">Complaint History</h2>
     
     <div class="flex justify-between items-center mb-6 ">
-        
         <form method="POST">
             <div class="flex w-full max-w-md mt-7">
-            <input type="text" name="search" placeholder="Search here" class="flex-grow py-2 px-5 border border-[#b8c3d6] rounded-l-lg focus:outline-none focus:ring-[#213655]" value="<?= htmlspecialchars($search ?? '') ?>">
+            <input type="text" name="search" placeholder="ID/NIC/Name" class="flex-grow py-2 px-5 border border-[#b8c3d6] rounded-l-lg focus:outline-none focus:ring-[#213655]" value="<?= htmlspecialchars($search ?? '') ?>">
              <select name="utility" class="border px-3 py-2 px-4">
                     <option value="" selected>All</option>
                     <option value="1" <?= ($utility ?? '')=='1' ? 'selected':'' ?>>Electricity</option>
@@ -59,14 +52,11 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
 
 
     <div class="bg-[#ffffff] p-[0px] rounded-xl">
-  <!--display-->  
   <table class="w-full bg-[#f0f0f0] rounded-xl boarder-collapse overflow-hidden table-fixed">
         <thead>
             <tr class="bg-[#213655] text-left text-[#ffffff]">
             <th class="p-3 w-32 text-center">Complaint Id</th>
-            <!--<th class="p-3 w-32">Customer Id</th>-->
             <th class="p-3 w-50 text-center">Name</th>
-            <!--<th class="p-3 w-32">Connection Id</th>-->
             <th class="p-3 w-32 text-center">Utility Type</th>
             <th class="p-3 w-85 text-center">Description</th>
             <th class="p-3 w-32 text-center">Date</th>
@@ -79,9 +69,7 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
                 <?php foreach($complaints_his as $row): ?>
                     <tr class="border-b h-12">
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintID'])?></td>
-                    <!--<td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?//htmlspecialchars($row['CustomerID'])?></td>-->
-                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['CustomerName'])?></td>
-                    <!--<td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?//htmlspecialchars($row['ConnectionID'])?></td>-->
+                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['FullName'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['UtilityTypeName'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintDescription'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= date('Y-m-d',strtotime($row['ComplaintDate']))?></td>
@@ -89,12 +77,11 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
                                 <span class="px-3 py-1 bg-green-300 text-green-900 rounded-full"><?= $row['ComplaintStatusName']?></span>
                         </td>
 
-                        <!--view button-->
                         <td class="p-3">
                             <button class="bg-[#213655] text-white px-4 py-1 rounded-lg hover:bg-[#162029] transition ml-5" 
                             onclick="openComplaintModal(
-                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['CustomerName'])?>','<?= htmlspecialchars($row['NIC'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'],ENT_QUOTES)?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
-                                '<?= htmlspecialchars($row['ComplaintStatusName'])?>' , '<?= htmlspecialchars($row['UtilityTypeName'])?>')">View</button>
+                                '<?= htmlspecialchars($row['ComplaintID'])?>','<?= htmlspecialchars($row['CustomerID'])?>','<?= htmlspecialchars($row['FullName'])?>','<?= htmlspecialchars($row['NIC'])?>','<?= htmlspecialchars($row['ConnectionID'])?>','<?= htmlspecialchars($row['ComplaintDescription'],ENT_QUOTES)?>','<?= htmlspecialchars($row['ComplaintDate'])?>',
+                                '<?= htmlspecialchars($row['ComplaintStatusName'])?>' , '<?= htmlspecialchars($row['UtilityTypeName'])?>','<?= htmlspecialchars($row['UserName'])?>')">View</button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -104,103 +91,98 @@ $complaints_his = executeQuery($pdo,$query,$params,false);
                         </tr>
                 <?php endif;?>
         </tbody>  
-
-
  </table>       
-
-
-
 </main>
+</div>
 
- </div>
+<div id="complaintModal" class="fixed inset-0 bg-black bg-opacity-85 hidden items-center justify-center z-50">
 
-
- <!--pop up-->
-
-<div id="complaintModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-
-    <div class="bg-white w-[95%] max-w-3xl p-8 rounded-lg shadow-lg max-h-[90vh] overflow-y-auto">
+    <div class="bg-[#213655] text-[white] w-[95%] max-w-3xl p-8 rounded-lg shadow-lg max-h-[90vh] overflow-y-auto border border-[#e5d283]">
         <h2 class="text-2xl font-bold mb-6">Complaint details</h2>
-
-        <table class="w-full text-base mb-6 table-auto">
-        <tbody class="space-y-4">
-        <tr class="boarder-b ">
-                <td class="font-bold py-3 px-2">Complaint Id:</td>
+        <table class="w-auto text-base mb-6 table-auto">
+        <tbody class="space-y-1">
+            <tr>
+                <td class="font-semibold py-3 px-2">Complaint Id :</td>
                 <td id="modalComplaintId"></td>
             </tr>
-
-           <tr class="boarder-b ">
-                <td class="font-bold py-3 px-2">Customer Id:</td>
+            <tr>
+                <td class="font-semibold py-3 px-2">Customer Id :</td>
                 <td id="modalCustomerId"></td>
             </tr>
-
-            <tr class="boarder-b ">
-                <td class="font-bold py-3 px-2">Customer Name:</td>
+            <tr>
+                <td class="font-semibold py-3 px-2">Customer Name :</td>
                 <td id="modalCustomerName"></td>
             </tr>
-
-             <tr class="boarder-b ">
-                <td class="font-bold py-3 px-2">NIC:</td>
+            <tr>
+                <td class="font-semibold py-3 px-2">NIC :</td>
                 <td id="modalNIC"></td>
             </tr>
-        
-           <tr class="boarder-b ">
-                <td class="font-bold py-3 px-2">Connection Id:</td>
+            <tr>
+                <td class="font-semibold py-3 px-2">Connection Id :</td>
                 <td id="modalConnectionId"></td>
             </tr>
-
-            <tr class="boarder-b">
-                <td class="font-bold align-top py-3 px-2">Description:</td>
+            <tr>
+                <td class="font-semibold align-top py-3 px-2">Description :</td>
                 <td id="modalDescription" class="break-words whitesapce-normal py-3"></td>
             </tr>
-
-            <tr class="boarder-b ">
-                <td class="font-bold py-3 px-2">Utility Type:</td>
+            <tr>
+                <td class="font-semibold py-3 px-2">Utility Type :</td>
                 <td id="modalUtility"></td>
             </tr>
-
-             <tr class="boarder-b ">
-                <td class="font-bold py-3 px-2">Date:</td>
+            <tr>
+                <td class="font-semibold py-3 px-2">Date :</td>
                 <td id="modalDate"></td>
             </tr>
-
-            <tr class="boarder-b">
-                <td class="font-bold py-3 px-2">Status:</td>
+            <tr>
+                <td class="font-semibold py-3 px-2">Status :</td>
                 <td>
                     <span id="modalStatus" class="px-3 py-1 bg-green-300 text-green-900 rounded-full"></span>
-                </td>
-                
+                </td> 
             </tr>
             </tbody> 
         </table>
 
-            <button onclick="closeComplaintModal()" class="bg-[#b8c3d6] text-[#0b121c] px-4 py-2 rounded hover:bg-[#b8c3d6]/50">Close</button>
+        <div class="flex items-center justify-between">
+            <div id="assigned" style="display: none;">
+            <table class="w-auto bg-[#e5d283] rounded-lg table-auto">
+                <tr>
+                    <td class="font-semibold text-[#213655] text-[18px] py-2 px-8">Completed By : <span class="text-[#213655] font-bold text-[18px]" id="modalAssigned"></span></td>
+                </tr>
+            </table>
         </div>
 
+        <button onclick="closeComplaintModal()" class="border-[2px] border-[#e5d283] text-[#e5d283] text-base px-4 py-2 rounded hover:bg-[#e5d283] hover:text-[#213655]">Close</button>
+        </div>
     </div>
-
 </div>
 
 <script>
-function openComplaintModal(id, customerId, customerName,customerNIC, connectionId, description,date, status, utilityType) {
+function openComplaintModal(id, customerId, FullName,customerNIC, connectionId, description,date, status, utilityType, assignedUser) {
     document.getElementById("modalComplaintId").innerText = id;
     document.getElementById("modalCustomerId").innerText = customerId;
-    document.getElementById("modalCustomerName").innerText = customerName;
+    document.getElementById("modalCustomerName").innerText = FullName;
     document.getElementById("modalNIC").innerText = customerNIC;
     document.getElementById("modalConnectionId").innerText = connectionId;
     document.getElementById("modalDescription").innerText = description;
 
-     const dt =  new Date(date);
+    const dt =  new Date(date);
     const formatDt = dt.toLocaleString('en-GB', {
 
         day: '2-digit', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit', second: '2-digit'
     });
-
     document.getElementById("modalDate").innerText = formatDt;
-
     document.getElementById("modalUtility").innerText = utilityType;
     document.getElementById("modalStatus").innerText = status;
+
+    const assigned= document.getElementById("assigned");
+    const assignedCell = document.getElementById("modalAssigned");
+    if(assignedUser && assignedUser !== "" && assignedUser !== "NULL"){
+        assignedCell.innerText=assignedUser;
+        assigned.style.display ="table-row";
+    }else{
+        assigned.style.display="none";
+    }
 
     document.getElementById("complaintModal").classList.remove("hidden");
     document.getElementById("complaintModal").classList.add("flex");

@@ -4,7 +4,6 @@ if(!isset($_SESSION['Username'])){
      header("Location: ../login.php");
     exit;
 }
-
 include('../include/db.php');
 
 $data = json_decode(file_get_contents('php://input'), true);
@@ -18,7 +17,6 @@ if(!$userId || strlen($newPassword) < 3){
 }
 
 $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
-
 try{
     $stmt = $pdo-> prepare("EXEC sp_UpdatePassword @UserID=?, @NewPassword=?");
     $stmt->execute([$userId,$hashedPassword]);

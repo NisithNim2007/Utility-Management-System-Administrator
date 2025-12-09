@@ -1,30 +1,25 @@
 <?php 
 session_start();
-//check if logged
 if(!isset($_SESSION['Username'])){
     header("Location: .././login.php");
     exit;
 }
-
 include ('../include/header.php'); ?>
 <div class="flex">
 <?php include ('../include/sidebar.php'); 
     include('../include/db.php');
 
-//alert 
 $alert = "";
 if(isset($_SESSION['success'])){
     $msg = addslashes($_SESSION['success']);
     $alert = "alert('Success: $msg');";
     unset($_SESSION['success']);
 }   
-
 if(isset($_SESSION['error'])){
     $msg = addslashes($_SESSION['error']);
     $alert = "alert('Error: $msg');";
     unset($_SESSION['error']);
 }  
-
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
     $fname = trim($_POST['fname']);
     $mname = trim($_POST['mname']);
@@ -50,21 +45,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         ];
 
         $result1 = executeNonQuery($pdo,$sql,$params);
-
         if($result1 !== "success"){
             throw new Exception("Person insert failed: " . $result1);
         }
-
-
-        //get userid
         $userid = $pdo -> lastInsertId();
-
-        //hash pwd
         $hashPwd = password_hash($pwd, PASSWORD_DEFAULT);
-
         $sql2 = "INSERT INTO Users(UserID,Username,RoleID, Password, IsActive)
         VALUES(:userid, :username, :role, :pwd_hash, :isActive)";
-
         $para = [
             'userid' => $userid,
             'username' => $username,
@@ -72,39 +59,31 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             'pwd_hash' => $hashPwd,
             'isActive' => 1
         ];
-
         $result2 = executeNonQuery($pdo, $sql2, $para);
-
         if($result2 !== "success"){
             throw new Exception("User insert failed: " . $result2);
         }
-
         $pdo ->commit();
-
         $_SESSION['success'] = "User added successfully";
         header('Location: addUser.php');
         exit;
 
     }catch (Exception $e){
         $pdo -> rollBack();
-
         $ms = $e->getMessage();
         error_log("User Create Error: $ms");
-        
+
         if(str_contains($ms, 'duplicate') || str_contains($ms, 'Duplicate')){
             $_SESSION['error'] = "Username, email or phone number already exists!";
         }else{
              $_SESSION['error'] = "Unable to create user. Please try again";
         }
-        
         header('Location: addUser.php');
         exit;
     }
-}
-  
-    
- 
+} 
 ?>
+
 <main class="flex-1 p-8 overflow-y-auto min-h-screen ml-64 flex justify-center items-center bg-gradient-to-br from-[#213655] to-[#e5d283]">
 <div class="max-w-4xl w-full bg-white p-10 rounded-xl shadow-xl">
     <h2 class="text-3xl font-bold mb-8 text-center text-[#162029]">Add new user</h2>
@@ -151,17 +130,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                     <option value="4">Manager</option>
                 </select>
         </div>
-
         <div class="flex gap-6 items-center" >
             <button type="submit" class="w-[180px] bg-[#213655] text-[#f0f0f0] py-3 rounded-lg text-lg font-semibold hover:bg-[#162029] hover:text-[#e5d283] transition">Add user</button>
             <button type="button" id="clearBtn" class="w-[180px] bg-[#213655] text-[#f0f0f0] py-3 rounded-lg text-lg font-semibold hover:bg-[#162029] hover:text-[#e5d283] transition"><a href="addUser.php">Clear</a></button>
         </div>
-        
-
     </form>
 </div>
-
 </main>
+
 
 <script>
     <?= $alert ?>
@@ -179,7 +155,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         const pwd = document.querySelector("input[name='pwd']").value.trim();
 
         if(!nameRegex.test(fname) || (mname && !nameRegex.test(mname)) || !nameRegex.test(lname)){
-            alert("Name must contain only letters");
+            alert("Name must contain only characters");
             e.preventDefault();
             return;
         }
@@ -197,17 +173,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         }
 
         if(pwd.length <3){
-            alert("Password must be atleast 6 characters");
+            alert("Password must be atleast 3 characters");
             e.preventDefault();
             return;
         }
-        if(nic.length <10){
-            alert("NIC must be atleast 10 characters");
+        if(nic.length <12){
+            alert("NIC must be 12 characters");
             e.preventDefault();
             return;
         
     });
 
-
-    
 </script>
