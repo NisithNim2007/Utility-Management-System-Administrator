@@ -1,9 +1,9 @@
 <?php 
 
     session_start();
+    
     include ('include/header.php'); 
     include('include/db.php');
-    $rateUnits = executeQuery($pdo, "SELECT RateUnitID, UnitName FROM RateUnits ORDER BY RateUnitID");
 ?>
 
 <div class="min-h-screen bg-[#f0f0f0]">
@@ -50,7 +50,7 @@
         <!-- UPDATED: Plan selector + Effective date + Fixed charge scope -->
         <?php
         // fetch active plans for current utility/category to populate selector
-            $plans = executeQuery($pdo, "SELECT TariffPlanID, PlanName, UtilityTypeID, EffectiveFrom, EffectiveTo FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
+            $plans = executeQuery($pdo, "SELECT TariffPlanID, CustomerTypeID, UtilityTypeID, EffectiveFrom, EffectiveTo FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
             if (!empty($plans)) {
                 $selectedPlan = $plans[0];
             } else {
@@ -59,13 +59,59 @@
                     'EffectiveTo'   => null
                 ];
             }
+        
+        // Build JS-friendly UtilityType-CustomerType → TariffPlanID map
+        // --- Build plan maps for JS ---
+        // fetch utility & customer names so we can build string keys (e.g. 'water-domestic')
+        $utils = executeQuery($pdo, "SELECT UtilityTypeID, UtilityTypeName FROM UtilityTypes");
+        $cats  = executeQuery($pdo, "SELECT CustomerTypeID, CustomerTypeName FROM CustomerTypes");
+
+        // build lookup arrays
+        $utilsById = [];
+        foreach ($utils as $u) $utilsById[$u['UtilityTypeID']] = $u['UtilityTypeName'];
+
+        $catsById = [];
+        foreach ($cats as $c) $catsById[$c['CustomerTypeID']] = $c['CustomerTypeName'];
+
+        // helper to normalise names to the short keys used in UI
+        function normKey($s) {
+            $s = strtolower(trim((string)$s));
+            // common normalisations used in UI:
+            $s = preg_replace('/[^a-z0-9]+/', '-', $s);
+            $s = str_replace(['-and-', ' and ', ' & '], '-', $s);
+            $s = str_replace(['religous','religious','non-profit','nonprofit','non-profit-organizations'], 'nonprofit', $s);
+            $s = str_replace(['domestic','commercial','government','nonprofit','water','gas','electricity','electric','gn','gc','ge','en','ed'], $s, $s);
+            $s = preg_replace('/-+/', '-', $s);
+            $s = trim($s, '-');
+            return $s;
+        }
+
+        // build numeric map (legacy) and string-key map (for UI)
+        $planMapNumeric = [];
+        $planMapString  = [];
+        foreach ($plans as $p) {
+            if (!isset($p['UtilityTypeID']) || !isset($p['CustomerTypeID'])) continue;
+            $numKey = $p['UtilityTypeID'] . '-' . $p['CustomerTypeID'];
+            $planMapNumeric[$numKey] = $p['TariffPlanID'];
+
+             $uName = $utilsById[$p['UtilityTypeID']] ?? '';
+            $cName = $catsById[$p['CustomerTypeID']] ?? '';
+            if ($uName !== '' && $cName !== '') {
+                $strKey = normKey($uName) . '-' . normKey($cName); // e.g. 'water-domestic'
+                $planMapString[$strKey] = $p['TariffPlanID'];
+            }
+        }
 
         ?>
-        <div class="bg-white p-4 rounded-xl shadow-sm mb-6">
+        <script>
+            const TARIFF_PLAN_MAP = <?= json_encode($planMapNumeric, JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_HEX_QUOT) ?>;
+            const TARIFF_PLAN_MAP_STR = <?= json_encode($planMapString, JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_HEX_QUOT) ?>;
+        </script>
+
+
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6">
     <div class="flex w-full items-center">
         
-        
-
         <!-- Middle Column: Effective From -->
         <div class="flex-1 text-left">
             <span class="text-sm text-gray-600 mr-2">Effective From:</span>
@@ -109,7 +155,6 @@
             
             <!--Water-Demostic table-->
             <div id="table-water-domestic" class="">
-            <!--div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg"-->
             <div class="flex-1 overflow-y-auto overflow-x-auto border border-gray-200 rounded-lg">
 
                 <?php
@@ -139,54 +184,38 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <?php
-
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-
-                            // inside loop, earlier you already set $rateId, $slabStart, $slabEnd etc.
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                            $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -225,49 +254,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -306,49 +322,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({{$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -386,49 +389,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -466,49 +456,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -546,50 +523,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -627,49 +590,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -707,49 +657,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -787,49 +724,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -867,49 +791,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -947,49 +858,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
-                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -1028,49 +926,36 @@
 
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
-                            $slabLabel = $r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']);
-                            $rateId = $r['RateID'];
-                            $slabStart = $r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? '' : $r['SlabEnd'];
-                            $ratePerUnit = number_format($r['RatePerUnit'], 2);
-                            $fixed = number_format($r['FixedCharge'], 2);
-                            echo "<tr>";
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];        // raw numeric for JS
-                            $fixedRaw = (float)$r['FixedCharge'];              // raw numeric for JS
-                            $slabEndForJs = ($r['SlabEnd'] === null ? null : (int)$r['SlabEnd']);
-
-                            // formatted strings to display in the table
-                            $ratePerUnitFmt = number_format($ratePerUnitRaw, 2);
-                            $fixedFmt = number_format($fixedRaw, 2);
+                            $rateId = (int)$r['RateID'];
+                            $slabStart = (int)$r['SlabStart'];
+                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
                             $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
 
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$ratePerUnitFmt}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$fixedFmt}</td>";
-
-                            // safe JSON-encoded arguments for JS function (prevents quoting/syntax errors)
-                            $jsRateId = json_encode((int)$rateId);
-                            $jsSlabStart = json_encode((int)$slabStart);
-                            $jsSlabEnd = json_encode($slabEndForJs);
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
                             $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
-
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
                             echo "<td class='px-4 py-3 whitespace-nowrap'>
-                                <button onclick=\"openEditTariffModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\"
-                                    class='text-[#213655] hover:text-[#0b121c] transition mr-2'>✏️ Edit</button>
-
-                            <form method='post' action='tariff-backend.php' class='inline' onsubmit=\"return confirm('Delete this slab?');\">
-                                <input type='hidden' name='action' value='delete_slab'>
-                                <input type='hidden' name='RateID' value='" . htmlspecialchars($rateId, ENT_QUOTES) . "'>
-                                <button type='submit' class='text-gray-600 hover:text-[#e43e4a] transition'>🗑 Delete</button>
-                            </form>
-                            </td>";
-                            echo "</tr>";
-                        }
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
                     } else {
                         echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
                     }
-                ?>
+                    ?>
                 </tbody>   
                 </table>
             </div>
@@ -1082,23 +967,26 @@
             <div class="bg-white p-6 rounded-xl shadow-lg relative"> <!--Main white card(container)-->
 
                 <div class="flex items-center justify-start space-x-4 mb-4">
-                <!--div class= "mt-4 flex justify-end gap-4"-->
-                    <button onclick="openAddTariffModal()" class="px-3 py-1.5 bg-[#213655] text-white rounded-lg shadow hover:bg-[#162029] font-semibold transition">
+
+                    <button onclick="openAddSlabModal()" class="px-3 py-1.5 bg-[#213655] text-white rounded-lg shadow hover:bg-[#e5d283] font-semibold transition">
                         + Add New Tariff Row
                     </button>
-                    <button onclick="openCategoryManagementModal()" class="px-3 py-1.5 bg-[#e5d283] text-white rounded-lg shadow hover:bg-[#213655] font-semibold transition">
+
+                    <!-- CHANGESSS!!!!! -->
+
+                    <!--button onclick="openCategoryManagementModal()" class="px-3 py-1.5 bg-[#e5d283] text-white rounded-lg shadow hover:bg-[#213655] font-semibold transition">
                         Category Management
-                    </button>
+                    </button-->
                 </div>
 
-                <div class="flex justify-end items-center space-x-4 mb-6">
+                <!--div class="flex justify-end items-center space-x-4 mb-6">
                      <button class="px-3 py-1.5 bg-[#213655] text-white rounded-lg shadow hover:bg-[#162029] font-semibold transition">
                         Save Changes
                     </button>
                     <button class="px-3 py-1.5 bg-[#b8c3d6] text-[#213655] rounded-lg shadow hover:bg-gray-400 transition">
                         Reset Table
                     </button>
-                </div>
+                </div-->
             </div>
 
         </div>
@@ -1106,13 +994,12 @@
     </main>
 </div>
 
-<!-- REPLACE: Add/Edit tariff modal -->
-<div id="addTariffModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+<!--div id="addTariffModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
   <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-xs">
     <h3 class="text-2xl text-[#213655] font-bold mb-4" id="modalTitle">Add / Edit Tariff Slab</h3>
 
     <form method="post" action="tariff-backend.php" onsubmit="return validateAddSlabForm(this);">
-      <input type="hidden" name="action" value="add_slab"> <!-- JS will set this to update_slab when editing -->
+      <input type="hidden" name="action" value="add_slab"> 
       <input type="hidden" name="TariffPlanID" id="modalTariffPlanID" value="">
       <input type="hidden" name="RateID" id="modalRateID" value="">
 
@@ -1143,10 +1030,12 @@
       </div>
     </form>
   </div>
-</div>
+</div-->
 <!-- END REPLACE -->
 
-<div id="categoryManagementModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+<!--        CHANGESSS!!!!         -->
+
+<!--div id="categoryManagementModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white p-5 rounded-xl shadow-2xl w-full max-w-xs">
         <h3 class="text-2xl font-bold text-[#213655] mb-4">Category Management</h3>
         
@@ -1166,13 +1055,149 @@
             <button onclick="closeCategoryManagementModal()" class="px-3 py-1.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm">Close</button>
         </div>
     </div>
+</div-->
+
+<!-- Add Slab Modal (hidden by default) -->
+<div id="modalAddSlab" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+  <div class="bg-white rounded-lg w-11/12 max-w-lg p-6">
+    <h3 class="text-lg font-semibold mb-4">Add Slab</h3>
+    <form method="post" action="tariff-backend.php" onsubmit="return validateAddSlabForm(this);">
+      <input type="hidden" name="action" value="add_slab">
+      <input type="hidden" name="TariffPlanID" id="addTariffPlanID" value="">
+      <div class="grid grid-cols-2 gap-4 mb-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">Slab Start (units)</label>
+          <input type="number" name="SlabStart" id="addSlabStart" min="0" required class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Slab End (units — leave empty for Over)</label>
+          <input type="number" name="SlabEnd" id="addSlabEnd" min="0" class="w-full border p-2 rounded">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Rate per Unit (Rs.)</label>
+          <input type="number" step="0.01" name="RatePerUnit" id="addRatePerUnit" required class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Fixed Charge (Rs.)</label>
+          <input type="number" step="0.01" name="FixedCharge" id="addFixedCharge" required class="w-full border p-2 rounded">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button type="button" onclick="closeAddSlabModal()" class="px-4 py-2 rounded border text-[#213655] hover:bg-gray-400 bg-[#b8c3d6]">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-[#213655] hover:bg-[#162029] text-white rounded">Save Tariff</button>
+      </div>
+    </form>
+  </div>
 </div>
+
+<!-- Edit Slab Modal -->
+<div id="modalEditSlab" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+  <div class="bg-white rounded-lg w-11/12 max-w-lg p-6">
+    <h3 class="text-lg font-semibold mb-4">Edit Slab</h3>
+    <form method="post" action="tariff-backend.php" onsubmit="return validateEditSlabForm(this);">
+      <input type="hidden" name="action" value="update_slab">
+      <input type="hidden" name="RateID" id="editRateID" value="">
+      <div class="mb-3">
+        <label class="block text-sm font-medium mb-1">Usage Range (read-only)</label>
+        <input type="text" id="editUsageRange" readonly class="w-full border p-2 rounded bg-gray-100">
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Rate per Unit (Rs.)</label>
+          <input type="number" step="0.01" name="RatePerUnit" id="editRatePerUnit" required class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Fixed Charge (Rs.)</label>
+          <input type="number" step="0.01" name="FixedCharge" id="editFixedCharge" required class="w-full border p-2 rounded">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button type="button" onclick="closeEditSlabModal()" class="px-4 py-2 rounded border text-[#213655] bg-[#b8c3d6] hover:bg-gray-400">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-[#213655] hover:bg-[#162029] text-white rounded">Save Tariff</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 
 <script>
     // This script controls the visibility of the Modals/Popups by manipulating their Tailwind classes.
 
+    function openAddSlabModal(utilityId, customerTypeId){
+    // If utilityId/customerTypeId are provided as numbers prefer them (backwards compatible).
+    let planId = '';
+    if (typeof utilityId !== 'undefined' && typeof customerTypeId !== 'undefined') {
+        // numeric form: try numeric key
+        const keyN = utilityId + '-' + customerTypeId;
+        planId = TARIFF_PLAN_MAP[keyN] || '';
+    } else {
+        // default: build string key from currentUtility/currentCategory
+        const keyS = currentUtility + '-' + currentCategory; // e.g. 'water-domestic'
+        planId = TARIFF_PLAN_MAP_STR[keyS] || '';
+    }
+
+    if(!planId){
+        alert('No tariff plan found for this combination. Create the plan first.');
+        return;
+    }
+    document.getElementById('addTariffPlanID').value = planId;
+    document.getElementById('addSlabStart').value = '';
+    document.getElementById('addSlabEnd').value = '';
+    document.getElementById('addRatePerUnit').value = '';
+    document.getElementById('addFixedCharge').value = '';
+    document.getElementById('modalAddSlab').classList.remove('hidden');
+    }
+
+
+    function closeAddSlabModal(){
+        document.getElementById('modalAddSlab').classList.add('hidden');
+    }
+
+    function openEditSlabModal(rateId, slabStart, slabEnd, ratePerUnit, fixed){
+        document.getElementById('editRateID').value = rateId;
+        const label = slabStart + ' - ' + (slabEnd===null ? 'Over' : slabEnd);
+        document.getElementById('editUsageRange').value = label;
+        document.getElementById('editRatePerUnit').value = ratePerUnit;
+        document.getElementById('editFixedCharge').value = fixed;
+        document.getElementById('modalEditSlab').classList.remove('hidden');
+    }
+
+    function closeEditSlabModal(){
+        document.getElementById('modalEditSlab').classList.add('hidden');
+    }
+
+    // client-side validation for add
+    function validateAddSlabForm(form){
+        const s = parseInt(form.SlabStart.value || '0', 10);
+        const eRaw = form.SlabEnd.value.trim();
+        const e = eRaw === '' ? null : parseInt(eRaw, 10);
+        const r = parseFloat(form.RatePerUnit.value || '0');
+        const f = parseFloat(form.FixedCharge.value || '0');
+
+        if(isNaN(s) || s < 0){ alert('Slab start must be >= 0'); return false; }
+        if(e !== null && e < s){ alert('Slab end must be >= slab start'); return false; }
+        if(isNaN(r) || r < 0){ alert('Rate must be >= 0'); return false; }
+        if(isNaN(f) || f < 0){ alert('Fixed charge must be >= 0'); return false; }
+        return true;
+    }
+
+    // client-side validation for edit
+    function validateEditSlabForm(form){
+        const r = parseFloat(form.RatePerUnit.value || '0');
+        const f = parseFloat(form.FixedCharge.value || '0');
+        if(isNaN(r) || r < 0){ alert('Rate must be >= 0'); return false; }
+        if(isNaN(f) || f < 0){ alert('Fixed charge must be >= 0'); return false; }
+        return true;
+    }
+
+
+
     // --- Add New Tariff Modal Functions ---
-    function openAddTariffModal() {
+    /*function openAddTariffModal() {
     const form = document.querySelector('#addTariffModal form');
     if (form) form.querySelector('input[name="action"]').value = 'add_slab';
     document.getElementById('modalTariffPlanID').value = (document.getElementById('TariffPlanID') ? document.getElementById('TariffPlanID').value : '');
@@ -1192,18 +1217,18 @@
     }
 
     // --- Category Management Modal Functions (Works the same way) ---
-    function openCategoryManagementModal() {
+    /*function openCategoryManagementModal() {
         document.getElementById("categoryManagementModal").classList.remove("hidden");
         document.getElementById("categoryManagementModal").classList.add("flex");
-    }
+    }*/
 
-    function closeCategoryManagementModal() {
+    /*function closeCategoryManagementModal() {
         document.getElementById("categoryManagementModal").classList.add("hidden");
         document.getElementById("categoryManagementModal").classList.remove("flex");
-    }
+    }*/
     
     // --- Edit Tariff Modal Stub (Placeholder function for the table's Edit button) ---
-    function openEditTariffModal(rateId, slabStart, slabEnd, ratePerUnit, fixedCharge, rateUnitId) {
+    /*function openEditTariffModal(rateId, slabStart, slabEnd, ratePerUnit, fixedCharge, rateUnitId) {
     const form = document.querySelector('#addTariffModal form');
     document.getElementById('modalTitle').innerText = rateId ? 'Edit Tariff Slab' : 'Add Tariff Slab';
     document.getElementById('addSlabStart').value = slabStart !== undefined && slabStart !== null ? slabStart : '';
@@ -1211,7 +1236,6 @@
     document.getElementById('addRatePerUnit').value = ratePerUnit !== undefined ? ratePerUnit : '';
     document.getElementById('addFixedCharge').value = fixedCharge !== undefined ? fixedCharge : '';
     document.getElementById('modalRateID').value = rateId || '';
-    // TariffPlanID: keep the value in the hidden input (modalTariffPlanID)
     document.getElementById('modalTariffPlanID').value = (document.getElementById('TariffPlanID') ? document.getElementById('TariffPlanID').value : '');
 
     // set form action to update if editing
@@ -1223,7 +1247,6 @@
     openAddTariffModal();
     }
 
-    /* Client-side validation before posting */
     function validateAddSlabForm(form){
         const start = parseInt(form.SlabStart.value || '0', 10);
         const endRaw = form.SlabEnd.value;
@@ -1236,7 +1259,7 @@
         const sel = document.getElementById('TariffPlanID');
         if(sel) form.TariffPlanID.value = sel.value;
         return true;
-    }
+    }*/
 
     // Toggles which table to show when specific buttons are clicked
 
@@ -1313,17 +1336,6 @@
     document.addEventListener('DOMContentLoaded', function() {
       selectUtility(currentUtility);   // set active utility styles
       selectCategory(currentCategory); // set active category styles and show table
-    });
-    
-    // Save / Reset stubs
-    document.querySelectorAll('.bg-[#213655].text-white.rounded-lg.font-semibold').forEach(btn=>{
-  // do nothing heavy — placeholder
-    });
-    document.querySelector('button:has(> textContent("Save Changes"))')?.addEventListener('click', function(e){
-        alert('Save Changes clicked — this will submit staged edits (not implemented yet).');
-    });
-    document.querySelector('button:has(> textContent("Reset Table"))')?.addEventListener('click', function(e){
-        location.reload(); // quick reset
     });
 
 </script>
