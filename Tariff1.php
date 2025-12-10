@@ -1,7 +1,7 @@
 <?php 
 
     session_start();
-    
+
     include ('include/header.php'); 
     include('include/db.php');
 ?>
@@ -12,7 +12,6 @@
 
     <main class="p-8 overflow-auto ml-64">
 
-        <!--div class="h-[calc(100vh-80px)] flex flex-col bg-white p-6 rounded-xl shadow-lg"-->
         <h2 class="text-3xl font-bold text-[#213655] mb-4">TARIFF MANAGEMENT</h2>
 
         <!-- UPDATED: FLASH MESSAGES -->
@@ -45,7 +44,6 @@
                 <button id="cat-government" data-category="government" class="py-2 px-4 text-[#213655] hover:text-white hover:bg-[#213655] hover:border-b-2 hover:border-[#213655] transition whitespace-nowrap rounded" onclick="selectCategory('government')">Government Institutions</button>
                 <button id="cat-nonprofit" data-category="nonprofit" class="py-2 px-4 text-[#213655] hover:text-white hover:bg-[#213655] hover:border-b-2 hover:border-[#213655] transition whitespace-nowrap rounded" onclick="selectCategory('nonprofit')">Religous/Non-profit Organizations</button>
             </div>
-        <!--/div-->
 
         <!-- UPDATED: Plan selector + Effective date + Fixed charge scope -->
         <?php
@@ -97,7 +95,7 @@
              $uName = $utilsById[$p['UtilityTypeID']] ?? '';
             $cName = $catsById[$p['CustomerTypeID']] ?? '';
             if ($uName !== '' && $cName !== '') {
-                $strKey = normKey($uName) . '-' . normKey($cName); // e.g. 'water-domestic'
+                $strKey = normKey($uName) . '-' . normKey($cName);
                 $planMapString[$strKey] = $p['TariffPlanID'];
             }
         }
@@ -158,8 +156,8 @@
             <div class="flex-1 overflow-y-auto overflow-x-auto border border-gray-200 rounded-lg">
 
                 <?php
-                $utilityId = 3  /* REPLACE_THIS */;    
-                $customerTypeId = 1  /* REPLACE_THIS */;
+                $utilityId = 3;    
+                $customerTypeId = 1;
                 
                 $unitRow = executeQuery($pdo,
                     "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
@@ -187,9 +185,24 @@
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
                             $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                            $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+
+
                             // raw numbers for JS
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];
                             $fixedRaw = (float)$r['FixedCharge'];
@@ -227,8 +240,8 @@
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
                 
                 <?php
-                $utilityId = 3  /* REPLACE_THIS */;    
-                $customerTypeId = 2 /* REPLACE_THIS */; 
+                $utilityId = 3;    
+                $customerTypeId = 2; 
 
                 $unitRow = executeQuery($pdo,
                     "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
@@ -255,18 +268,32 @@
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
                             $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+
                             // raw numbers for JS
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];
                             $fixedRaw = (float)$r['FixedCharge'];
 
-                             // JSON encode to avoid quoting issues
+                            // JSON encode to avoid quoting issues
                             $jsRateId = json_encode($rateId);
                             $jsSlabStart = json_encode($slabStart);
                             $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
                             echo "<tr>";
                             echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
@@ -295,15 +322,15 @@
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
                 
                 <?php
-                $utilityId = 3  /* REPLACE_THIS */;    
-                $customerTypeId = 3  /* REPLACE_THIS */; 
+                $utilityId = 3;    
+                $customerTypeId = 3; 
 
                 $unitRow = executeQuery($pdo,
                     "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
                     [$utilityId],
                     true
                 );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $unit = $unitRow['UnitName'] ?? 'units';
 
                 $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
                 ?>
@@ -323,9 +350,23 @@
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
                             $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+                            
                             // raw numbers for JS
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];
                             $fixedRaw = (float)$r['FixedCharge'];
@@ -334,7 +375,7 @@
                             $jsRateId = json_encode($rateId);
                             $jsSlabStart = json_encode($slabStart);
                             $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
                             echo "<tr>";
                             echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
@@ -363,15 +404,15 @@
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
                 
                 <?php
-                $utilityId = 3  /* REPLACE_THIS */;    
-                $customerTypeId = 4  /* REPLACE_THIS */; 
+                $utilityId = 3;    
+                $customerTypeId = 4; 
 
                 $unitRow = executeQuery($pdo,
                     "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
                     [$utilityId],
                     true
                 );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $unit = $unitRow['UnitName'] ?? 'units';
                 $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
                 ?>
 
@@ -390,9 +431,23 @@
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
                             $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+                            
                             // raw numbers for JS
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];
                             $fixedRaw = (float)$r['FixedCharge'];
@@ -401,7 +456,7 @@
                             $jsRateId = json_encode($rateId);
                             $jsSlabStart = json_encode($slabStart);
                             $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
                             $jsFixed = json_encode($fixedRaw);
                             echo "<tr>";
                             echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
@@ -430,15 +485,15 @@
             <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
                 
                 <?php
-                $utilityId = 1  /* REPLACE_THIS */;    
-                $customerTypeId = 1  /* REPLACE_THIS */; 
+                $utilityId = 1;    
+                $customerTypeId = 1; 
 
                 $unitRow = executeQuery($pdo,
                     "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
                     [$utilityId],
                     true
                 );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
+                $unit = $unitRow['UnitName'] ?? 'units';
                 $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
                 ?>
 
@@ -457,479 +512,23 @@
                     if (!empty($rates)) {
                         foreach ($rates as $r) {
                             $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
-                            // raw numbers for JS
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
-                            $fixedRaw = (float)$r['FixedCharge'];
 
-                             // JSON encode to avoid quoting issues
-                            $jsRateId = json_encode($rateId);
-                            $jsSlabStart = json_encode($slabStart);
-                            $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
-                            $jsFixed = json_encode($fixedRaw);
-                            echo "<tr>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
-                            // Actions: only Edit button (opens edit modal)
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>
-                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
-                                ✏️ Edit
-                            </button>
-                        </td>";
-                        echo "</tr>";
-                    }
-                    } else {
-                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
-                    }
-                    ?>
-                </tbody>   
-                </table>
-            </div>
-            </div>
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
 
-            <!--Electricity-Commercial table-->
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
 
-            <div id="table-electricity-commercial" class="hidden">
-            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
-                
-                <?php
-                $utilityId = 1  /* REPLACE_THIS */;    
-                $customerTypeId = 2  /* REPLACE_THIS */; 
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
 
-                $unitRow = executeQuery($pdo,
-                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
-                    [$utilityId],
-                    true
-                );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
-                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
-                ?>
-
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0 z-20">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EC (<?= htmlspecialchars($unit) ?>) </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <?php
-
-                    if (!empty($rates)) {
-                        foreach ($rates as $r) {
-                            $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
-                            // raw numbers for JS
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
-                            $fixedRaw = (float)$r['FixedCharge'];
-
-                             // JSON encode to avoid quoting issues
-                            $jsRateId = json_encode($rateId);
-                            $jsSlabStart = json_encode($slabStart);
-                            $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
-                            $jsFixed = json_encode($fixedRaw);
-                            echo "<tr>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
-                            // Actions: only Edit button (opens edit modal)
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>
-                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
-                                ✏️ Edit
-                            </button>
-                        </td>";
-                        echo "</tr>";
-                    }
-                    } else {
-                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
-                    }
-                    ?>
-                </tbody>   
-                </table>
-            </div>
-            </div>
-
-            <!--Electricity-Government table-->
-
-            <div id="table-electricity-government" class="hidden">
-            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
-                
-                <?php
-                $utilityId = 1  /* REPLACE_THIS */;    
-                $customerTypeId = 3  /* REPLACE_THIS */; 
-
-                $unitRow = executeQuery($pdo,
-                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
-                    [$utilityId],
-                    true
-                );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
-                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
-                ?>
-
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0 z-20">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EG (<?= htmlspecialchars($unit) ?>) </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <?php
-
-                    if (!empty($rates)) {
-                        foreach ($rates as $r) {
-                            $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
-                            // raw numbers for JS
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
-                            $fixedRaw = (float)$r['FixedCharge'];
-
-                             // JSON encode to avoid quoting issues
-                            $jsRateId = json_encode($rateId);
-                            $jsSlabStart = json_encode($slabStart);
-                            $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
-                            $jsFixed = json_encode($fixedRaw);
-                            echo "<tr>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
-                            // Actions: only Edit button (opens edit modal)
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>
-                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
-                                ✏️ Edit
-                            </button>
-                        </td>";
-                        echo "</tr>";
-                    }
-                    } else {
-                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
-                    }
-                    ?>
-                </tbody>   
-                </table>
-            </div>
-            </div>
-
-            <!--Electricity-Nonprofit table-->
-
-            <div id="table-electricity-nonprofit" class="hidden">
-            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
-                
-                <?php
-                $utilityId = 1  /* REPLACE_THIS */;    
-                $customerTypeId = 4  /* REPLACE_THIS */; 
-
-                $unitRow = executeQuery($pdo,
-                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
-                    [$utilityId],
-                    true
-                );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
-                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
-                ?>
-
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0 z-20">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EN (<?= htmlspecialchars($unit) ?>) </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <?php
-
-                    if (!empty($rates)) {
-                        foreach ($rates as $r) {
-                            $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
-                            // raw numbers for JS
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
-                            $fixedRaw = (float)$r['FixedCharge'];
-
-                             // JSON encode to avoid quoting issues
-                            $jsRateId = json_encode($rateId);
-                            $jsSlabStart = json_encode($slabStart);
-                            $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
-                            $jsFixed = json_encode($fixedRaw);
-                            echo "<tr>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
-                            // Actions: only Edit button (opens edit modal)
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>
-                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
-                                ✏️ Edit
-                            </button>
-                        </td>";
-                        echo "</tr>";
-                    }
-                    } else {
-                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
-                    }
-                    ?>
-                </tbody>   
-                </table>
-            </div>
-            </div>
-
-            <!--Gas-Domestic table-->
-
-            <div id="table-gas-domestic" class="hidden">
-            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
-                
-                <?php
-                $utilityId = 2  /* REPLACE_THIS */;    
-                $customerTypeId = 1  /* REPLACE_THIS */; 
-
-                $unitRow = executeQuery($pdo,
-                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
-                    [$utilityId],
-                    true
-                );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
-                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
-                ?>
-
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0 z-20">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GD (<?= htmlspecialchars($unit) ?>) </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <?php
-
-                    if (!empty($rates)) {
-                        foreach ($rates as $r) {
-                            $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
-                            // raw numbers for JS
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
-                            $fixedRaw = (float)$r['FixedCharge'];
-
-                             // JSON encode to avoid quoting issues
-                            $jsRateId = json_encode($rateId);
-                            $jsSlabStart = json_encode($slabStart);
-                            $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
-                            $jsFixed = json_encode($fixedRaw);
-                            echo "<tr>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
-                            // Actions: only Edit button (opens edit modal)
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>
-                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
-                                ✏️ Edit
-                            </button>
-                        </td>";
-                        echo "</tr>";
-                    }
-                    } else {
-                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
-                    }
-                    ?>
-                </tbody>   
-                </table>
-            </div>
-            </div>
-
-            <!--Gas-Commercial table-->
-
-            <div id="table-gas-commercial" class="hidden">
-            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
-                
-                <?php
-                $utilityId = 2  /* REPLACE_THIS */;    
-                $customerTypeId = 2  /* REPLACE_THIS */; 
-
-                $unitRow = executeQuery($pdo,
-                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
-                    [$utilityId],
-                    true
-                );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
-                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
-                ?>
-
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0 z-20">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GC (<?= htmlspecialchars($unit) ?>)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <?php
-
-                    if (!empty($rates)) {
-                        foreach ($rates as $r) {
-                            $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
-                            // raw numbers for JS
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
-                            $fixedRaw = (float)$r['FixedCharge'];
-
-                             // JSON encode to avoid quoting issues
-                            $jsRateId = json_encode($rateId);
-                            $jsSlabStart = json_encode($slabStart);
-                            $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
-                            $jsFixed = json_encode($fixedRaw);
-                            echo "<tr>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
-                            // Actions: only Edit button (opens edit modal)
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>
-                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
-                                ✏️ Edit
-                            </button>
-                        </td>";
-                        echo "</tr>";
-                    }
-                    } else {
-                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
-                    }
-                    ?>
-                </tbody>   
-                </table>
-            </div>
-            </div>
-
-            <!--Gas-Government table-->
-
-            <div id="table-gas-government" class="hidden">
-            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
-                
-                <?php
-                $utilityId = 2  /* REPLACE_THIS */;    
-                $customerTypeId = 3  /* REPLACE_THIS */; 
-
-                $unitRow = executeQuery($pdo,
-                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
-                    [$utilityId],
-                    true
-                );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default                    
-                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
-                ?>
-
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0 z-20">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GG (<?= htmlspecialchars($unit) ?>) </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <?php
-
-                    if (!empty($rates)) {
-                        foreach ($rates as $r) {
-                            $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
-                            // raw numbers for JS
-                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
-                            $fixedRaw = (float)$r['FixedCharge'];
-
-                             // JSON encode to avoid quoting issues
-                            $jsRateId = json_encode($rateId);
-                            $jsSlabStart = json_encode($slabStart);
-                            $jsSlabEnd = json_encode($slabEnd);
-                              $jsRatePerUnit = json_encode($ratePerUnitRaw);
-                            $jsFixed = json_encode($fixedRaw);
-                            echo "<tr>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
-                            // Actions: only Edit button (opens edit modal)
-                            echo "<td class='px-4 py-3 whitespace-nowrap'>
-                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
-                                ✏️ Edit
-                            </button>
-                        </td>";
-                        echo "</tr>";
-                    }
-                    } else {
-                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
-                    }
-                    ?>
-                </tbody>   
-                </table>
-            </div>
-            </div>
-
-            <!--Gas-Nonprofit table-->
-
-            <div id="table-gas-nonprofit" class="hidden">
-            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
-                
-                <?php
-                $utilityId = 2  /* REPLACE_THIS */;    
-                $customerTypeId = 4  /* REPLACE_THIS */; 
-
-                $unitRow = executeQuery($pdo,
-                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
-                    [$utilityId],
-                    true
-                );
-                $unit = $unitRow['UnitName'] ?? 'units'; // safe default
-
-                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
-                ?>
-                
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50 sticky top-0 z-20">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GN (<?= htmlspecialchars($unit) ?>) </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    <?php
-
-                    if (!empty($rates)) {
-                        foreach ($rates as $r) {
-                            $rateId = (int)$r['RateID'];
-                            $slabStart = (int)$r['SlabStart'];
-                             $slabEnd = $r['SlabEnd'] === null ? null : (int)$r['SlabEnd'];
-                            $slabLabel = htmlspecialchars($r['SlabStart'] . ' - ' . ($r['SlabEnd'] === null ? 'Over' : $r['SlabEnd']));
                             // raw numbers for JS
                             $ratePerUnitRaw = (float)$r['RatePerUnit'];
                             $fixedRaw = (float)$r['FixedCharge'];
@@ -961,6 +560,573 @@
             </div>
             </div>
 
+            <!--Electricity-Commercial table-->
+
+            <div id="table-electricity-commercial" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 1;    
+                $customerTypeId = 2; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units';
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EC (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $rateId = (int)$r['RateID'];
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+                            
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
+
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsFixed = json_encode($fixedRaw);
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                    ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Electricity-Government table-->
+
+            <div id="table-electricity-government" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 1;    
+                $customerTypeId = 3; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units';
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EG (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $rateId = (int)$r['RateID'];
+                            
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+                            
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
+
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsFixed = json_encode($fixedRaw);
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                    ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Electricity-Nonprofit table-->
+
+            <div id="table-electricity-nonprofit" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 1;    
+                $customerTypeId = 4; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units';
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units EN (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $rateId = (int)$r['RateID'];
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
+
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsFixed = json_encode($fixedRaw);
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                    ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Gas-Domestic table-->
+
+            <div id="table-gas-domestic" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2;    
+                $customerTypeId = 1; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units';
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GD (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $rateId = (int)$r['RateID'];
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
+
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsFixed = json_encode($fixedRaw);
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                    ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Gas-Commercial table-->
+
+            <div id="table-gas-commercial" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2;    
+                $customerTypeId = 2; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units';
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GC (<?= htmlspecialchars($unit) ?>)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $rateId = (int)$r['RateID'];
+                            
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
+
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsFixed = json_encode($fixedRaw);
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                    ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Gas-Government table-->
+
+            <div id="table-gas-government" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2;    
+                $customerTypeId = 3; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units';                    
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GG (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $rateId = (int)$r['RateID'];
+                            
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
+
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsFixed = json_encode($fixedRaw);
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                    ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
+
+            <!--Gas-Nonprofit table-->
+
+            <div id="table-gas-nonprofit" class="hidden">
+            <div class="max-h-[380px] overflow-y-auto overflow-x-auto border border-gray-100 rounded-lg">
+                
+                <?php
+                $utilityId = 2;    
+                $customerTypeId = 4; 
+
+                $unitRow = executeQuery($pdo,
+                    "SELECT UnitName FROM UtilityTypes WHERE UtilityTypeID = ?",
+                    [$utilityId],
+                    true
+                );
+                $unit = $unitRow['UnitName'] ?? 'units';
+
+                $rates = executeQuery($pdo, "EXEC dbo.sp_GetTariffRatesByUtilityAndCustomer ?, ?", [$utilityId, $customerTypeId]);
+                ?>
+                
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-20">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">No. of Units GN (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <?php
+
+                    if (!empty($rates)) {
+                        foreach ($rates as $r) {
+                            $rateId = (int)$r['RateID'];
+
+                            // normalize slab end: treat 2147483647 as "Over" (null)
+                            $slabStart = isset($r['SlabStart']) ? (int)$r['SlabStart'] : 0;
+                            $rawEnd = $r['SlabEnd'];
+
+                            if ($rawEnd === null || (is_numeric($rawEnd) && intval($rawEnd) === 2147483647)) {
+                                $slabEnd = null;
+                            } else {
+                                $slabEnd = (int)$rawEnd;
+                            }
+
+                            if ($slabEnd === null) {
+                                $slabLabel = htmlspecialchars("Over {$slabStart}");
+                            } else {
+                                $slabLabel = htmlspecialchars("{$slabStart} - {$slabEnd}");
+                            }
+                            
+                            // raw numbers for JS
+                            $ratePerUnitRaw = (float)$r['RatePerUnit'];
+                            $fixedRaw = (float)$r['FixedCharge'];
+
+                             // JSON encode to avoid quoting issues
+                            $jsRateId = json_encode($rateId);
+                            $jsSlabStart = json_encode($slabStart);
+                            $jsSlabEnd = json_encode($slabEnd);
+                            $jsRatePerUnit = json_encode($ratePerUnitRaw);
+                            $jsFixed = json_encode($fixedRaw);
+                            echo "<tr>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>{$slabLabel}</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($ratePerUnitRaw, 2) . "</td>";
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>" . number_format($fixedRaw, 2) . "</td>";
+                            // Actions: only Edit button (opens edit modal)
+                            echo "<td class='px-4 py-3 whitespace-nowrap'>
+                            <button onclick=\"openEditSlabModal({$jsRateId}, {$jsSlabStart}, {$jsSlabEnd}, {$jsRatePerUnit}, {$jsFixed})\" class='text-[#213655] hover:text-[#0b121c] transition mr-2'>
+                                ✏️ Edit
+                            </button>
+                        </td>";
+                        echo "</tr>";
+                    }
+                    } else {
+                        echo "<tr><td colspan='4' class='p-4 text-center'>No tariff rows defined for this plan.</td></tr>";
+                    }
+                    ?>
+                </tbody>   
+                </table>
+            </div>
+            </div>
 
             <!--TABLES OVERRRRRRRRRRRRRRR!!!!!!!!!!!!!!!!!!!!!!!!!!!-->
 
