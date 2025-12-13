@@ -191,7 +191,7 @@ $gas = $stats['gas_complaints'];
             <tr>
                 <td class="font-semibold py-3 px-2">Status :</td>
                 <td id="modalStatus">
-                    <span id="modalStatus"></span>
+                    <span id="modalStatus_"></span>
                 </td>
             </tr>
          </tbody> 
@@ -208,8 +208,8 @@ $gas = $stats['gas_complaints'];
             
 
         <div class="flex gap-6 font-semibold">
-            <button class="bg-[#b8c3d6] text-[#213655] text-base px-4 py-2 rounded hover:bg-[#b8c3d6]/50">Complete</button>
-            <button class="bg-[#b8c3d6] text-[#213655] text-base px-4 py-2 rounded hover:bg-[#b8c3d6]/50">Update</button>
+            <button class="bg-[#b8c3d6] text-[#213655] text-base px-4 py-2 rounded hover:bg-[#b8c3d6]/50" id="completebtn">Complete</button>
+            <button class="bg-[#b8c3d6] text-[#213655] text-base px-4 py-2 rounded hover:bg-[#b8c3d6]/50" id="updatebtn">Update</button>
             <button onclick="closeComplaintModal()" class="border-[2px] border-[#e5d283] text-[#e5d283] text-base px-4 py-2 rounded hover:bg-[#e5d283] hover:text-[#213655]">Close</button>
         </div>
         </div>
@@ -264,7 +264,7 @@ function closeComplaintModal() {
     document.getElementById("complaintModal").classList.remove("flex");
 }
 
-document.querySelector(".bg-purple-600").onclick = function(){
+document.getElementById("updatebtn").onclick = function(){
     if(selectedStatus !== "Pending"){
         alert("Already in progress.Press COMPLETE!");
         return;
@@ -275,7 +275,7 @@ document.querySelector(".bg-purple-600").onclick = function(){
     updateStatus(2);
 };
 
-document.querySelector(".bg-green-600").onclick = function(){
+document.getElementById("completebtn").onclick = function(){
      if(!confirm("Are you sure you want to update complaint status as COMPLETED?")){
         return;
     }
