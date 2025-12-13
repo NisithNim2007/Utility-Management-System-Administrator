@@ -4,17 +4,12 @@ if(!isset($_SESSION['Username'])){
     header("Location: .././login.php");
     exit;
 }
-
-$username = $_SESSION['Username'];
-
-include ('./include/header.php'); 
-?>
+include ('./include/header.php'); ?>
 
 <div class="flex">
 
-<?php 
-include ('./include/sidebar.php'); 
-
+<?php include ('./include/sidebar.php'); 
+     include('./include/db.php');
 
 $stats = executeQuery($pdo,"EXEC sp_dashCount",[],true);
 $tot_count = $stats['tot_consumers'];
