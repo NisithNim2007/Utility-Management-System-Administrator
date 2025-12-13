@@ -8,16 +8,14 @@ $password = "TUIY43afwejin123JKH";
 try {
     $dsn = "sqlsrv:Server=$host,$port;Database=$dbname";
     $pdo = new PDO($dsn, $username, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Throw exceptions
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Fetch associative arrays
-        PDO::ATTR_EMULATE_PREPARES => false, // Use real prepared statements
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, 
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, 
+        PDO::ATTR_EMULATE_PREPARES => false, 
     ]);
 } catch (PDOException $e) {
-    //log errors
     error_log("Database connection failed." . $e->getMessage(), 0);
     die("Database connection failed. Please try again later.");
 }
-
 
 function executeQuery(PDO $conn, string $sql, array $params=[], bool $single=false
 ){
@@ -32,7 +30,6 @@ function executeQuery(PDO $conn, string $sql, array $params=[], bool $single=fal
                 $stmt -> bindValue($key + 1, $value);
             }
         }
-
     }
         $stmt -> execute();
         
@@ -44,9 +41,6 @@ function executeQuery(PDO $conn, string $sql, array $params=[], bool $single=fal
         die("Database error: " . $e->getMessage());
     }
 }
-
-
-
 
 
 function executeNonQuery(PDO $conn, $sql, $params=[]){
