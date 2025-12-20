@@ -21,8 +21,14 @@ try{
 
     echo json_encode(['success'=>true]);
 }catch(PDOException $e){
-    echo json_encode(['success'=>false, 'message'=>'Failes to update account status. Please try again later.']);
-    error_log("DB error in updat_account.php: " . $e->getMessage());
+    $msg = 'Failed to update account status. Please try again later';
+
+    if( isset($e->errorInfo[2]) &&
+        strpos($e->errorInfo[2], 'ADMIN_DEACTIVATION_BLOCK') !== false){
+        $msg = 'Admin accounts cannot be deactivated';
+    }
+    echo json_encode(['success'=>false, 'message'=>$msg]);
+    exit;
 }
 
 ?>
