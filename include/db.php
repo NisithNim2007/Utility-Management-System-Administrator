@@ -17,44 +17,50 @@ try {
     die("Database connection failed. Please try again later.");
 }
 
-function executeQuery(PDO $conn, string $sql, array $params=[], bool $single=false
-){
-    try{
-        $stmt = $conn-> prepare($sql);
-    if(!empty($params)){
-        foreach ($params as $key => $value){
-
-            if(is_string($key)){
-                $stmt -> bindValue($key, $value);
-            }else{
-                $stmt -> bindValue($key + 1, $value);
+function executeQuery(PDO $conn, string $sql, array $params=[], bool $single=false) {
+    try {
+        $stmt = $conn->prepare($sql);
+        
+        if (!empty($params)) {
+            foreach ($params as $key => $value) {
+                if (is_int($key)) {
+                    $stmt->bindValue($key + 1, $value);
+                } else {
+                    $stmt->bindValue($key, $value);
+                }
             }
         }
-    }
-        $stmt -> execute();
+        
+        $stmt->execute();
         
         return $single
-            ? $stmt-> fetch(PDO::FETCH_ASSOC)
+            ? $stmt->fetch(PDO::FETCH_ASSOC)
             : $stmt->fetchAll(PDO::FETCH_ASSOC);
        
-    }catch(PDOException $e){
+    } catch (PDOException $e) {
         die("Database error: " . $e->getMessage());
     }
 }
 
-
-function executeNonQuery(PDO $conn, $sql, $params=[]){
-    try{
+function executeNonQuery(PDO $conn, $sql, $params=[]) {
+    try {
         $stmt = $conn->prepare($sql);
 
-        foreach($params as $key=>$value){
-            $stmt->bindValue($key,$value);
+        if (!empty($params)) {
+            foreach ($params as $key => $value) {
+                if (is_int($key)) {
+                    $stmt->bindValue($key + 1, $value);
+                } else {
+                    $stmt->bindValue($key, $value);
+                }
+            }
         }
+        
         $stmt->execute();
         return "success";
-    }catch (PDOException $e){
+        
+    } catch (PDOException $e) {
         return "Databse error: " . $e->getMessage();
     }
 }
-
 ?>
