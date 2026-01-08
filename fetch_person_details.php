@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 0);
+error_reporting(0);
+header('Content-Type: application/json');
+
 require "connection.php";
 
 header("Content-Type: application/json; charset=UTF-8");
@@ -26,7 +30,8 @@ SELECT
     c.Address,
     c.City,
     c.State,
-    c.PostalCode
+    c.PostalCode,
+    c.Status
 FROM Persons p
 LEFT JOIN Customers c ON p.PersonID = c.CustomerID
 WHERE p.PersonID = ?

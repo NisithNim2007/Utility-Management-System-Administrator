@@ -1,6 +1,5 @@
 <?php
-// fetch_customer_types.php
-require 'connection.php'; // expects $pdo PDO
+require 'connection.php'; 
 
 header('Content-Type: application/json; charset=UTF-8');
 

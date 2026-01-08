@@ -1,5 +1,5 @@
 <?php
-// fetch_utility_types.php
+
 require 'connection.php';
 
 header('Content-Type: application/json; charset=UTF-8');

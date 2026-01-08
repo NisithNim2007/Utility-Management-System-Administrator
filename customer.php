@@ -31,6 +31,10 @@
     th, td { white-space: nowrap; }
   </style>
 
+
+
+
+
 </head>
 
 <body class="bg-baseDark text-softWhite">
@@ -113,173 +117,328 @@
   </main>
 
 
-  <!-- ADD NEW CUSTOMER POPUP -->
-<div id="newCustomerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center">
-  <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-2xl relative text-sm">
+<!-- ADD NEW CUSTOMER POPUP -->
+<div id="newCustomerModal"
+     class="fixed inset-0 bg-[#0b121c]/80 hidden items-center justify-center z-50">
 
-    <!-- Close button -->
+  <!-- POPUP CONTAINER -->
+  <div class="bg-[#213655] border border-[#e5d283]
+              w-full max-w-2xl max-h-[90vh]
+              p-6 rounded-2xl shadow-2xl
+              flex flex-col text-sm text-[#f0f0f0]">
+
+    <!-- CLOSE BUTTON -->
     <button onclick="closeNewCustomerModal()"
-            class="absolute top-2 right-2 text-lg font-bold text-gray-600 hover:text-red-500">×</button>
-
-    <h2 class="text-xl font-bold text-center mb-4 text-primaryDark">Add New Customer</h2>
-
-    <!-- PERSONS SECTION -->
-    <h3 class="font-semibold mb-2 text-primaryDark">Personal Information</h3>
-    <div class="grid grid-cols-2 gap-2">
-      <input id="firstName" class="border p-2 rounded" style="color:#000 !important;" placeholder="First Name">
-      <input id="middleName" class="border p-2 rounded" style="color:#000 !important;" placeholder="Middle Name">
-      <input id="lastName" class="border p-2 rounded" style="color:#000 !important;" placeholder="Last Name">
-      <input id="nic" class="border p-2 rounded" style="color:#000 !important;" placeholder="NIC">
-      <input id="email" class="border p-2 rounded col-span-2" style="color:#000 !important;" placeholder="Email">
-      <input id="phone" class="border p-2 rounded col-span-2" style="color:#000 !important;" placeholder="Phone Number">
-    </div>
-
-    <!-- CUSTOMER SECTION -->
-    <h3 class="font-semibold mt-4 mb-2 text-primaryDark">Customer Details</h3>
-    <div class="grid grid-cols-2 gap-2">
-
-
-<select id="customerType" class="border p-2 rounded col-span-2" style="color:#000 ">
-    <option value="" disabled selected>Select Customer Type</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-</select>
-
-
-      <input id="address" class="border p-2 rounded col-span-2" style="color:#000 !important;" placeholder="Address">
-      <input id="city" class="border p-2 rounded" style="color:#000 !important;" placeholder="City">
-      <input id="state" class="border p-2 rounded" style="color:#000 !important;" placeholder="State">
-      <input id="postalCode" class="border p-2 rounded col-span-2" style="color:#000 !important;" placeholder="Postal Code">
-    </div>
-    <select id="customerStatus" class="border p-2 rounded col-span-2" style="color:#000 !important;">
-    <option value="" disabled selected>Select Status</option>
-    <option value="Active">Active</option>
-    <option value="Inactive">Inactive</option>
-</select>
-
-
-    <!-- UTILITY SECTION -->
-    <h3 class="font-semibold mt-4 mb-2 text-primaryDark">Utility Connection</h3>
-    <div class="grid grid-cols-2 gap-2">
-   <select id="utilityName" class="border p-2 rounded col-span-2" style="color:#000 !important;">
-    <option value="" disabled selected>Select Utility</option>
-    <option value="Gas">Gas</option>
-    <option value="Electricity">Electricity</option>
-    <option value="Water">Water</option>
-</select>
-
-   
-
-
-      <input id="connectionDate" type="date" class="border p-2 rounded col-span-2" style="color:#000 !important;">
-    </div>
-
-    <button onclick="saveNewCustomer()"
-            class="mt-5 w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-800">
-      Create Customer
+      class="absolute top-3 right-4 text-2xl font-bold
+             text-[#b8c3d6] hover:text-[#e43e4a] transition">
+      ×
     </button>
+
+    <!-- HEADER -->
+    <h2 class="text-lg font-bold text-[#e5d283]
+               border-b border-[#e5d283] pb-2 mb-4 shrink-0">
+      Add New Customer
+    </h2>
+
+    
+    <div class="flex-1 overflow-y-auto pr-1">
+
+      <!-- PERSONAL INFO -->
+      <h3 class="font-semibold mb-2 text-[#b8c3d6]">
+        Personal Information
+      </h3>
+
+      <div class="grid grid-cols-2 gap-3 mb-4">
+
+        <input id="firstName"
+          class="p-2 rounded-lg bg-[#f0f0f0] text-[#162029]
+                 placeholder:text-[#b8c3d6]"
+          placeholder="First Name">
+
+        <input id="middleName"
+          class="p-2 rounded-lg bg-[#f0f0f0] text-[#162029]
+                 placeholder:text-[#b8c3d6]"
+          placeholder="Middle Name">
+
+        <input id="lastName"
+          class="p-2 rounded-lg bg-[#f0f0f0] text-[#162029]
+                 placeholder:text-[#b8c3d6]"
+          placeholder="Last Name">
+
+        <input id="nic"
+          class="p-2 rounded-lg bg-[#f0f0f0] text-[#162029]
+                 placeholder:text-[#b8c3d6]"
+          placeholder="NIC">
+
+        <input id="email"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]
+                 placeholder:text-[#b8c3d6]"
+          placeholder="Email">
+
+        <input id="phone"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]
+                 placeholder:text-[#b8c3d6]"
+          placeholder="Phone Number">
+      </div>
+
+      <!-- CUSTOMER DETAILS -->
+      <h3 class="font-semibold mb-2 text-[#b8c3d6]">
+        Customer Details
+      </h3>
+
+      <div class="grid grid-cols-2 gap-3 mb-4">
+
+        <select id="customerType"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+          <option value="" disabled selected>Select Customer Type</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+
+        <input id="address"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]"
+          placeholder="Address">
+
+        <input id="city"
+          class="p-2 rounded-lg bg-[#f0f0f0] text-[#162029]"
+          placeholder="City">
+
+        <input id="state"
+          class="p-2 rounded-lg bg-[#f0f0f0] text-[#162029]"
+          placeholder="State">
+
+        <input id="postalCode"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]"
+          placeholder="Postal Code">
+
+        <select id="customerStatus"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+          <option value="" disabled selected>Select Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+
+      </div>
+
+      <!-- UTILITY -->
+      <h3 class="font-semibold mb-2 text-[#b8c3d6]">
+        Utility Connection
+      </h3>
+
+      <div class="grid grid-cols-2 gap-3">
+
+        <select id="utilityName"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+          <option value="" disabled selected>Select Utility</option>
+          <option value="Gas">Gas</option>
+          <option value="Electricity">Electricity</option>
+          <option value="Water">Water</option>
+        </select>
+
+        <input id="connectionDate" type="date"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+      </div>
+
+    </div>
+
+    <!-- footer----->
+    <div class="mt-4 shrink-0">
+      <button onclick="saveNewCustomer()"
+        class="w-full bg-[#e5d283] text-[#162029]
+               p-3 rounded-xl font-semibold
+               shadow-lg hover:bg-[#213655]
+               hover:text-white transition">
+        Create Customer
+      </button>
+    </div>
+
   </div>
 </div>
 
- <!-- PERSON DETAILS POPUP -->
-<div id="detailsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center">
 
-  <div class="bg-softWhite border-4 border-gold w-full max-w-sm p-3 rounded-lg shadow-2xl relative text-xs">
+<!-- PERSON DETAILS POPUP -->
+<div id="detailsModal" class="fixed inset-0 bg-[#0b121c]/80 hidden items-center justify-center z-50">
 
-    <button onclick="closeModal()" 
-            class="absolute top-1 right-1 text-lg font-bold text-primaryDark hover:text-alertRed">×</button>
+  <!-- POPUP -->
+  <div class="bg-[#213655] border border-[#e5d283]
+              w-full max-w-3xl max-h-[90vh]
+              p-6 rounded-2xl shadow-2xl
+              flex flex-col text-sm text-[#f0f0f0]">
 
-    <h2 class="text-base font-bold mb-2 text-primaryDark border-b border-gold pb-1">
+    <!-- close button -->
+    <button onclick="closeModal()"
+      class="absolute top-3 right-4 text-2xl font-bold
+             text-[#b8c3d6] hover:text-[#e43e4a] transition">
+      ×
+    </button>
+
+    <!-- Header -->
+    <h2 class="text-lg font-bold mb-4 text-[#e5d283] border-b border-[#e5d283] pb-2 shrink-0">
       Person Details
     </h2>
 
-    <!-- FORM GRID -->
-    <div class="grid grid-cols-2 gap-2">
-      <div><label class="font-semibold text-primaryDark">Person ID</label><input id="d_personid" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">NIC</label><input id="d_nic" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">First</label><input id="d_fname" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Middle</label><input id="d_mname" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Last</label><input id="d_lname" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Email</label><input id="d_email" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Phone</label><input id="d_phone" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Reg Date</label><input id="d_regdate" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Customer ID</label><input id="d_custid" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Cust. Type</label><input id="d_custtype" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Address</label><input id="d_address" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">City</label><input id="d_city" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">State</label><input id="d_state" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
-      <div><label class="font-semibold text-primaryDark">Postal</label><input id="d_postal" class="w-full border p-1 rounded text-xs bg-white text-primaryDark" disabled></div>
+    <!-- Person Details-->
+    <div class="shrink-0">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+       
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Person ID</label>
+          <input id="d_personid" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">NIC</label>
+          <input id="d_nic" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">First Name</label>
+          <input id="d_fname" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Middle Name</label>
+          <input id="d_mname" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Last Name</label>
+          <input id="d_lname" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Email</label>
+          <input id="d_email" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Phone</label>
+          <input id="d_phone" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Reg Date</label>
+          <input id="d_regdate" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Customer ID</label>
+          <input id="d_custid" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Customer Type</label>
+          <input id="d_custtype" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Address</label>
+          <input id="d_address" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">City</label>
+          <input id="d_city" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">State</label>
+          <input id="d_state" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Postal</label>
+          <input id="d_postal" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+        </div>
+
+        <div>
+          <label class="font-semibold text-[#b8c3d6]">Status</label>
+          <select id="d_status" disabled
+            class="w-full mt-1 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+      </div>
     </div>
 
-<!-- CONNECTIONS SECTION -->
-<div class="mt-3 border border-gold rounded">
+   
+    <div class="mt-6 border border-[#e5d283] rounded-xl overflow-hidden
+                flex flex-col flex-1 min-h-0">
 
-  <!-- Table Header (fixed) -->
-  <div class="bg-gold text-baseDark font-semibold px-2 py-1 text-xs">
-    Connections
-  </div>
+      <div class="bg-[#e5d283] text-[#162029] font-semibold px-4 py-2 shrink-0">
+        Connections
+      </div>
 
-  <!-- Scrollable Table -->
-  <div class="max-h-48 overflow-y-auto bg-white">
-    <table id="connectionsTable" class="w-full text-xs border-collapse">
+      <div class="flex-1 overflow-y-auto bg-[#f0f0f0]">
+        <table id="connectionsTable" class="w-full text-sm border-collapse">
 
-      <thead class="bg-[#e6d87f] sticky top-0">
-        <tr>
-          <th class="text-left px-2 py-1">Conn. ID</th>
-          <th class="text-left px-2 py-1">Utility</th>
-          <th class="text-right px-2 py-1">Balance</th>
-          <th class="text-left px-2 py-1">Status</th>
-          <th class="text-left px-2 py-1">Conn. Date</th>
-        </tr>
-      </thead>
+          <thead class="bg-[#b8c3d6] sticky top-0 z-10">
+            <tr>
+              <th class="px-3 py-2 text-left">Conn. ID</th>
+              <th class="px-3 py-2 text-left">Utility</th>
+              <th class="px-3 py-2 text-right">Balance</th>
+              <th class="px-3 py-2 text-left">Status</th>
+              <th class="px-3 py-2 text-left">Conn. Date</th>
+            </tr>
+          </thead>
 
-      <tbody>
-        <tr>
-          <td colspan="5" class="text-center py-2 text-gray-500">
-            No data loaded yet.
-          </td>
-        </tr>
-      </tbody>
+          <tbody>
+            <tr>
+              <td colspan="5" class="text-center py-6 text-gray-500">
+                No data loaded yet.
+              </td>
+            </tr>
+          </tbody>
 
-    </table>
-  </div>
+        </table>
+      </div>
+    </div>
 
-</div>
+    <!---buttons---->
+    <div class="mt-4 flex justify-end gap-3 shrink-0">
 
-<style>
-  /* force visible text (overrides dark-site themes) */
-  #connectionsTable, #connectionsTable th, #connectionsTable td {
-    color: #111 !important;
-    background: transparent !important;
-  }
-</style>
+      <button id="addConnectionBtn"
+        class="bg-[#162029] text-[#f0f0f0] px-4 py-2 rounded-lg
+               hover:bg-[#213655] transition">
+        Add Connection
+      </button>
 
-    <!-- BUTTONS UNDER DETAILS -->
-    <div class="mt-3 flex justify-end space-x-2">
-      <!-- in the view popup where Add Connection button is -->
+      <button id="editBtn" onclick="enableEdit()"
+        class="bg-[#e5d283] text-[#162029] px-4 py-2 rounded-lg font-semibold
+               hover:bg-[#213655] hover:text-white transition">
+        Edit
+      </button>
 
-<!-- safer button: avoids PHP warning if $personID is not set -->
-<button id="addConnectionBtn"
-        class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
-  Add Connection
-</button>
+      <button id="saveBtn" onclick="saveChanges()"
+        class="hidden bg-[#213655] text-[#f0f0f0] px-4 py-2 rounded-lg
+               hover:bg-[#e5d283] hover:text-[#162029] transition">
+        Save
+      </button>
 
+      <button id="cancelBtn" onclick="cancelEdit()"
+        class="hidden bg-[#e43e4a] text-white px-4 py-2 rounded-lg
+               hover:bg-[#213655] transition">
+        Cancel
+      </button>
 
-
-
-        <button id="editBtn" onclick="enableEdit()" 
-            class="bg-gold text-primaryDark font-semibold px-3 py-1 rounded-md text-xs hover:bg-primaryDark hover:text-white">
-            Edit
-        </button>
-        <button id="saveBtn" onclick="saveChanges()" 
-            class="hidden bg-primaryDark text-softWhite font-semibold px-3 py-1 rounded-md text-xs hover:bg-gold hover:text-baseDark">
-            Save
-        </button>
-        <button id="cancelBtn" onclick="cancelEdit()" 
-            class="hidden bg-alertRed text-white font-semibold px-3 py-1 rounded-md text-xs hover:bg-primaryDark">
-            Cancel
-        </button>
     </div>
 
   </div>
@@ -294,58 +453,66 @@
   <div class="modal-content" style="
         max-width:560px;
         padding:20px;
-        border-radius:8px;
-        box-shadow:0 8px 30px rgba(0,0,0,.25);
-        background:#fff;
-        color:#000 !important;       
+        border-radius:12px;
+        box-shadow:0 12px 40px rgba(0,0,0,.45);
+        background:#213655;
+        color:#f0f0f0;
       ">
 
-    <h3 style="margin-top:0; color:#000 !important;">Add Utility Connection</h3>
+    <h3 style="margin-top:0; color:#e5d283;">Add Utility Connection</h3>
 
-    <form id="addConnectionForm" style="color:#000 !important;">
-      <!-- Name matches server side (PersonID) -->
+    <form id="addConnectionForm">
+
       <input type="hidden" id="ac_customerID" name="PersonID" value="">
 
-      <div style="margin-bottom:12px; color:#000 !important;">
-        <label for="ac_customerType" style="color:#000 !important;">Customer Type</label><br>
+      <div style="margin-bottom:12px;">
+        <label for="ac_customerType" style="color:#b8c3d6;">Customer Type</label><br>
         <select id="ac_customerType" name="CustomerTypeID" required 
-                style="width:100%;padding:8px;margin-top:6px;color:#000 !important;background:#fff;">
+                style="width:100%;padding:8px;margin-top:6px;
+                       background:#f0f0f0;color:#162029;border-radius:6px;border:none;">
         </select>
       </div>
 
-      <div style="margin-bottom:12px; color:#000 !important;">
-        <label for="ac_utilityType" style="color:#000 !important;">Utility Type</label><br>
+      <div style="margin-bottom:12px;">
+        <label for="ac_utilityType" style="color:#b8c3d6;">Utility Type</label><br>
         <select id="ac_utilityType" name="UtilityTypeID" required 
-                style="width:100%;padding:8px;margin-top:6px;color:#000 !important;background:#fff;">
+                style="width:100%;padding:8px;margin-top:6px;
+                       background:#f0f0f0;color:#162029;border-radius:6px;border:none;">
         </select>
       </div>
 
-      <div style="margin-bottom:12px; color:#000 !important;">
-        <label for="ac_connectionDate" style="color:#000 !important;">Connection Date</label><br>
+      <div style="margin-bottom:12px;">
+        <label for="ac_connectionDate" style="color:#b8c3d6;">Connection Date</label><br>
         <input type="date" id="ac_connectionDate" name="ConnectionDate" 
-               style="width:100%;padding:8px;margin-top:6px;color:#000 !important;background:#fff;" />
+               style="width:100%;padding:8px;margin-top:6px;
+                      background:#f0f0f0;color:#162029;border-radius:6px;border:none;" />
       </div>
 
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
         <button type="button" id="ac_cancelBtn" 
-                style="padding:8px 14px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#000 !important;">
+                style="padding:8px 16px;border-radius:8px;
+                       background:#162029;color:#b8c3d6;border:none;">
           Cancel
         </button>
 
         <button type="submit" id="ac_saveBtn" 
-                style="padding:8px 14px;border-radius:6px;border:0;background:#1e88e5;color:#fff !important;">
+                style="padding:8px 16px;border-radius:8px;
+                       background:#e5d283;color:#0b121c;font-weight:600;">
           Save
         </button>
       </div>
 
-      <div id="ac_msg" style="margin-top:10px;color:#d32f2f;display:none;font-weight:600;"></div>
+      <div id="ac_msg" style="
+            margin-top:10px;
+            color:#e43e4a;
+            display:none;
+            font-weight:600;">
+      </div>
+
     </form>
 
   </div>
 </div>
-
-
-
 
 <style>
   .modal { 
@@ -354,10 +521,11 @@
     display:flex; 
     align-items:center; 
     justify-content:center; 
-    background: rgba(0,0,0,0.4); 
+    background: rgba(11,18,28,0.75); 
     z-index:9999; 
   }
 </style>
+
 
 
 
@@ -435,8 +603,8 @@ function loadUtilityTypes() {
 function isValidSriLankanNIC(nic) {
   nic = nic.trim().toUpperCase();
 
-  const oldNIC = /^[0-9]{9}[VX]$/; // 123456789V
-  const newNIC = /^[0-9]{12}$/;    // 200012345678
+  const oldNIC = /^[0-9]{9}[VX]$/; 
+  const newNIC = /^[0-9]{12}$/;   
 
   return oldNIC.test(nic) || newNIC.test(nic);
 }
@@ -467,14 +635,14 @@ function saveNewCustomer() {
     phoneInput.focus();
     return;
   }
-  // NIC FORMAT CHECK
+  // NIC
   if (!isValidSriLankanNIC(nic)) {
     alert("Enter a valid NIC");
     nicInput.focus();
     return; 
   }
 
-  //CHECK IF NIC ALREADY EXISTS (AJAX)
+
   fetch("check_nic.php?nic=" + encodeURIComponent(nic))
     .then(res => res.json())
     .then(result => {
@@ -482,10 +650,10 @@ function saveNewCustomer() {
       if (result.exists) {
         alert("This NIC is already registered");
         nicInput.focus();
-        return; //  stop submission
+        return; 
       }
 
-      //  IF EVERYTHING IS OK → SAVE CUSTOMER
+    
       let fd = new FormData();
 
       fd.append("firstName", document.getElementById("firstName").value);
@@ -541,7 +709,7 @@ function saveNewCustomer() {
         return el.dataset.personid || el.dataset.customerid;
       }
       const txt = (el.textContent || el.value || '').trim();
-      if (txt && /^\d+$/.test(txt)) return txt; // numeric id
+      if (txt && /^\d+$/.test(txt)) return txt; 
       const attr = el.getAttribute('data-personid') || el.getAttribute('data-customerid');
       if (attr) return attr;
     }
@@ -553,28 +721,28 @@ function saveNewCustomer() {
     if (!btn) return;
     const hid = document.getElementById('ac_customerID');
     if (!hid) return;
-    // prefer button attribute
+    
     const cid = btn.dataset ? (btn.dataset.customerid || btn.getAttribute('data-customerid')) : btn.getAttribute('data-customerid');
     if (cid) {
       hid.value = cid;
       return;
     }
-    // fallback: discover on page
+ 
     const fallback = findPersonIDOnPage();
     if (fallback) hid.value = fallback;
   });
 
-  // Also attempt one last fallback when the modal opens programmatically
+
   const originalOpen = window.openAddConnectionModal;
   window.openAddConnectionModal = async function(customerID) {
     if (customerID && document.getElementById('ac_customerID')) {
       document.getElementById('ac_customerID').value = customerID;
     }
-    // call original (if exists) to do dropdowns and show
+
     if (typeof originalOpen === 'function') {
       await originalOpen(customerID);
     } else {
-      // if original missing, do the fallback and show modal
+   
       const hid = document.getElementById('ac_customerID');
       if (hid && !hid.value) hid.value = findPersonIDOnPage() || '';
       const m = document.getElementById('addConnectionModal');
@@ -592,8 +760,7 @@ function saveNewCustomer() {
 /////////////////////
 // SAVE UTILITY CONNECTION
 /////////////////////
-// Robust connections-add.js (replace existing)
-// Robust connections-add.js (replace existing)
+
 document.addEventListener('DOMContentLoaded', function () {
   const FETCH_CUSTOMER_TYPES = 'fetch_customer_types.php';
   const FETCH_UTILITY_TYPES  = 'fetch_utility_types.php';
@@ -611,28 +778,27 @@ document.addEventListener('DOMContentLoaded', function () {
     box.textContent = text;
   }
 
-  // Try to discover current PersonID from page if not provided
+
   function discoverPersonIDFallback(){
-    // 1) from the Add button
+    
     const addBtn = document.querySelector('#addConnectionBtn') || document.querySelector('[data-customerid]');
     if (addBtn) {
       const d = addBtn.dataset ? (addBtn.dataset.customerid || addBtn.getAttribute('data-customerid')) : addBtn.getAttribute('data-customerid');
       if (d) return d;
     }
-    // 2) from an element that often contains the person id in your view popup
-    // Try several common selectors - adjust if your view uses another id/class
+
     const possible = [
       '#personID', '#PersonID', '#lblPersonID', '.person-id', '.current-person-id', '[data-personid]'
     ];
     for (let sel of possible){
       const el = document.querySelector(sel);
       if (el) {
-        // prefer dataset attribute if present
+ 
         if (el.dataset && el.dataset.personid) return el.dataset.personid;
-        // otherwise use text content trimmed
+      
         const t = el.textContent && el.textContent.trim();
         if (t && /^\d+$/.test(t)) return t;
-        // or data attribute
+     
         const attr = el.getAttribute('data-personid');
         if (attr) return attr;
       }
@@ -640,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return null;
   }
 
-  // Load dropdowns (safe)
+  // Loading dropdowns
   async function loadDropdowns(){
     const customerTypeSelect = $id('ac_customerType');
     const utilityTypeSelect  = $id('ac_utilityType');
@@ -666,16 +832,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Public open function (keeps compatibility)
+  
   window.openAddConnectionModal = async function(customerID){
-    // if customerID provided, set it. Otherwise we'll attempt fallback later.
+
     const hid = $id('ac_customerID');
     if (hid && customerID) hid.value = customerID;
-    // default connection date
+  
     const cd = $id('ac_connectionDate');
     if (cd && !cd.value) cd.value = new Date().toISOString().split('T')[0];
     await loadDropdowns();
-    // if hidden is still empty, try fallback discovery
+    
     if (hid && !hid.value) {
       const fallback = discoverPersonIDFallback();
       if (fallback) hid.value = fallback;
@@ -683,18 +849,18 @@ document.addEventListener('DOMContentLoaded', function () {
     showModal();
   };
 
-  // Delegated click handler: sets PersonID and opens modal
+  
   document.addEventListener('click', function(e){
     const btn = e.target.closest && e.target.closest('[data-customerid], #addConnectionBtn, .btn-add-connection');
     if (!btn) return;
-    // prefer dataset
+   
     const cid = btn.dataset ? (btn.dataset.customerid || btn.getAttribute('data-customerid')) : btn.getAttribute('data-customerid');
     if (!cid) {
-      // If no cid on button, but modal may still open from other code - set fallback to hidden input
+      
       const hid = $id('ac_customerID');
       const fallback = discoverPersonIDFallback();
       if (hid && fallback) hid.value = fallback;
-      // If still missing, warn and continue (open modal without person id)
+      
       if (!hid || !hid.value) {
         alert('Customer ID missing from button.');
         return;
@@ -704,7 +870,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     e.preventDefault();
-    // set hidden then open
+    
     const hid = $id('ac_customerID');
     if (hid) hid.value = cid;
     openAddConnectionModal(cid);
@@ -714,12 +880,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const cancel = $id('ac_cancelBtn');
   if (cancel) cancel.addEventListener('click', function(){ hideModal(); });
 
-  // Submit handler with extra checks
+  
   const form = $id('addConnectionForm');
   if (form) {
     form.addEventListener('submit', async function(e){
       e.preventDefault();
-      // ensure hidden PersonID is set; try fallback one last time
+   
       const hid = $id('ac_customerID');
       if (hid && !hid.value) {
         const fallback = discoverPersonIDFallback();
@@ -730,7 +896,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const custType = $id('ac_customerType') ? $id('ac_customerType').value : '';
       const connDate = $id('ac_connectionDate') ? $id('ac_connectionDate').value : '';
 
-      // Defensive checks
+      // Defensive checkings
       if (!personID) {
         showMessage('Missing PersonID. Please open the modal from the Add Connection button for the correct customer.');
         return;
@@ -767,7 +933,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showMessage('Connection added successfully.', false);
             setTimeout(()=>{ hideModal(); if (typeof loadConnections === 'function') loadConnections(personID); }, 700);
           } else {
-            // server might return plain text or JSON
+            
             showMessage((json && json.message) ? json.message : (text || 'Failed to add connection.'));
           }
         }
@@ -780,11 +946,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Close modal clicking outside
+  
   const modal = $id('addConnectionModal');
   if (modal) modal.addEventListener('click', function(e){ if (e.target === modal) hideModal(); });
 
-}); // DOMContentLoaded end
+});
 
 
 
@@ -846,9 +1012,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
   renderTable(filtered);
 });
 
-/////////////////////
-// VIEW DETAILS POPUP
-/////////////////////
+
     
 
 
@@ -885,27 +1049,27 @@ function viewDetails(personID) {
       document.getElementById("d_city").value     = data.City ?? "";
       document.getElementById("d_state").value    = data.State ?? "";
       document.getElementById("d_postal").value   = data.PostalCode ?? "";
+      document.getElementById("d_status").value = data.Status ?? "Active";
 
-      // Ensure connections table exists and show loading placeholder
       const tbody = document.querySelector("#connectionsTable tbody");
       if (tbody) {
         tbody.innerHTML = `<tr><td colspan="5" class="py-2">Loading connections…</td></tr>`;
       }
 
-      // Set the hidden input used by the Add Connection modal (so add button works)
+     
       const hidden = document.getElementById("ac_customerID");
       if (hidden) {
         hidden.value = data.CustomerID ?? data.PersonID ?? "";
       }
 
-      // LOAD CONNECTIONS only if we have a CustomerID (non-empty, non-zero)
+
       const cid = data.CustomerID || data.PersonID || 0;
       if (cid) {
-        // call your connections loader (must exist)
+       
         if (typeof loadConnections === "function") {
           loadConnections(cid);
         } else {
-          // debug hint if loadConnections missing
+       
           console.warn("loadConnections() not found — connections will not load automatically.");
           if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-2 text-red-600">Connections loader not found.</td></tr>`;
         }
@@ -921,7 +1085,7 @@ function viewDetails(personID) {
       }
 
       // OPEN MODAL
-      // prefer your existing openModal() if present; otherwise try a modal element id
+
       if (typeof openModal === "function") {
         openModal();
       } else {
@@ -951,7 +1115,7 @@ function enableEdit() {
   const fields = [
     "d_nic", "d_fname", "d_mname", "d_lname",
     "d_email", "d_phone", "d_address",
-    "d_city", "d_state", "d_postal", "d_custtype"
+    "d_city", "d_state", "d_postal", "d_custtype" , "d_status"
   ];
 
   fields.forEach(f => {
@@ -970,7 +1134,7 @@ function disableAllFields() {
     "d_nic", "d_fname", "d_mname", "d_lname",
     "d_email", "d_phone", "d_regdate",
     "d_custid", "d_custtype",
-    "d_address", "d_city", "d_state", "d_postal"
+    "d_address", "d_city", "d_state", "d_postal" , "d_status"
   ];
 
   all.forEach(f => {
@@ -1009,6 +1173,7 @@ function saveChanges() {
   formData.append("City", document.getElementById("d_city").value);
   formData.append("State", document.getElementById("d_state").value);
   formData.append("PostalCode", document.getElementById("d_postal").value);
+  formData.append("Status", document.getElementById("d_status").value);
 
   fetch("update_persons_customers.php", {
     method: "POST",
@@ -1057,7 +1222,7 @@ async function loadConnections(customerID) {
       return;
     }
 
-    tbody.innerHTML = ''; // clear and render
+    tbody.innerHTML = '';
     data.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `

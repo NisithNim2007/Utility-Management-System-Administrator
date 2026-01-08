@@ -5,7 +5,7 @@ header("Content-Type: application/json; charset=UTF-8");
 
 try {
 
-    // Select only the needed columns
+    
     $sql = "SELECT 
                 PersonID,
                 NIC,
