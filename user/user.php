@@ -89,9 +89,9 @@ $user_load = executeQuery($pdo,$query,$params,false);
         <tbody> 
             <?php if(!empty($user_load)): ?>
                 <?php foreach($user_load as $row): ?>
-                    <tr class="border-b h-12 border-[#b8c3d6] hover:bg-[#b8c3d6]/20">
+                    <tr class="border-b h-12 border-[#b8c3d6]/60 hover:bg-[#b8c3d6]/30">
                         <td class="p-3"><?= htmlspecialchars($row['UserID'])?></td>
-                         <td class="p-3"><?= htmlspecialchars($row['FirstName']. ' ' . $row['MiddleName']. ' '. $row['LastName'])?></td>
+                        <td class="p-3"><?= htmlspecialchars($row['FirstName']. ' ' . $row['MiddleName']. ' '. $row['LastName'])?></td>
                         <td class="p-3"><?= htmlspecialchars($row['Username'])?></td>
                         <td class="p-3"><?= htmlspecialchars($row['RoleName'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['Email'])?></td>
@@ -187,11 +187,13 @@ async function updateStatus(userId, status){
         });
         const data= await res.json();
         if(!data.success){
-            alert('Failed to update account status. Please try again later.');
+            alert(data.message);
             console.error('Error updating status: ' + data.message);
+            location.reload();
         }
         else{
             alert("User account updated successfully");
+            location.reload();
         }
     }catch (err){
         console.error(err);

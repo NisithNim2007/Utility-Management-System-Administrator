@@ -106,7 +106,7 @@ $gas = $stats['gas_complaints'];
         <tbody> 
             <?php if(!empty($complaints)): ?>
                 <?php foreach($complaints as $row): ?>
-                    <tr class="border-b h-12">
+                    <tr class="border-b h-12 border-[#b8c3d6]/60 hover:bg-[#b8c3d6]/30">
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['ComplaintID'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['FullName'])?></td>
                         <td class="p-3 overflow-hidden text-ellipsis whitespace-nowrap"><?= htmlspecialchars($row['UtilityTypeName'])?></td>
