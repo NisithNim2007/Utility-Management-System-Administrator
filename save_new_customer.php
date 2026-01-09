@@ -25,6 +25,12 @@ try {
     $postalCode     = $_POST["postalCode"];
 
     $utilityName    = $_POST["utilityName"];
+    $meterNumber = $_POST["meterNumber"] ?? null;
+
+if (empty($meterNumber)) {
+    throw new Exception("Meter number is required.");
+}
+
     $connectionDate = $_POST["connectionDate"];
 
     // -------- Inserting into persons --------
@@ -79,7 +85,7 @@ try {
     }
 
     // -------- Inserting into Meters--------
-    $meterNumber = 'MTR-' . strtoupper(bin2hex(random_bytes(4)));
+  
 
     $meterSql = "INSERT INTO Meters (
                     MeterNumber,

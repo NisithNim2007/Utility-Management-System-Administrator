@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Person Dashboard</title>
+    <title>Customer Dashboard</title>
 
     <!-- Tailwind-->
      <script src="https://cdn.tailwindcss.com"></script>
@@ -58,7 +58,7 @@
 
   <!-- MAIN AREA -->
   <main class="ml-64 p-8">
-    <h1 class="text-gold text-3xl font-bold mb-8">Person Dashboard</h1>
+    <h1 class="text-gold text-3xl font-bold mb-8">Customer Dashboard</h1>
 
     <section class="bg-softWhite text-baseDark rounded-xl shadow-lg p-6 border border-gold">
 
@@ -235,6 +235,12 @@
           <option value="Electricity">Electricity</option>
           <option value="Water">Water</option>
         </select>
+
+           <input id="meterNumber"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]"
+          placeholder="Enter the meter Number">
+
+
 
         <input id="connectionDate" type="date"
           class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
@@ -670,6 +676,7 @@ function saveNewCustomer() {
       fd.append("postalCode", document.getElementById("postalCode").value);
 
       fd.append("utilityName", document.getElementById("utilityName").value);
+      fd.append("meterNumber", document.getElementById("meterNumber").value);
       fd.append("connectionDate", document.getElementById("connectionDate").value);
 
       fetch("save_new_customer.php", {

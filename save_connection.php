@@ -21,6 +21,13 @@ try {
 
     $response['step'] = 'input_ok';
 
+    $meterNumber = $_POST['meterNumber'] ?? null;
+
+if (empty($meterNumber)) {
+    throw new Exception("Meter number is required");
+}
+
+
     // ---------------- Inserting the connection ----------------
     $sql = "INSERT INTO ServiceConnections 
             (CustomerID, UtilityTypeID, CurrentBalance, AccountStatusID, ConnectionStatusID, ConnectionDate)
@@ -56,7 +63,7 @@ try {
     $response['step'] = 'fk_visible';
 
     // ---------------- Inserting the meters ----------------
-    $meterNumber = strtoupper(bin2hex(random_bytes(5)));
+
 
     $sql2 = "INSERT INTO Meters
              (MeterNumber, ConnectionID, InstallationDate, InitialReading)
