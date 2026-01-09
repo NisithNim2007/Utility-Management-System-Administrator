@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Person Dashboard</title>
+    <title>Customer Dashboard</title>
 
     <!-- Tailwind-->
      <script src="https://cdn.tailwindcss.com"></script>
@@ -39,9 +39,8 @@
 
 <body class="bg-baseDark text-softWhite">
 
- <?php include ('include/sidebar.php'); ?>
-
-  <!-- <nav class="bg-[#213655] text-white w-64 h-screen fixed top-0 left-0 flex flex-col p-6 overflow-y-auto">
+  <!-- LEFT NAVBAR -->
+  <nav class="bg-[#213655] text-white w-64 h-screen fixed top-0 left-0 flex flex-col p-6 overflow-y-auto">
     <h1 class="text-3xl font-bold mb-10 leading-tight">Utility Management System</h1>
 
     <ul class="flex flex-col space-y-4 w-full">
@@ -55,11 +54,11 @@
     <div class="mt-auto w-full">
       <a class="block text-center text-[#162029] p-3 mt-6 bg-[#e5d283] hover:bg-red-500 rounded font-semibold transition">Log out</a>
     </div>
-  </nav> -->
+  </nav>
 
   <!-- MAIN AREA -->
   <main class="ml-64 p-8">
-    <h1 class="text-gold text-3xl font-bold mb-8">Person Dashboard</h1>
+    <h1 class="text-gold text-3xl font-bold mb-8">Customer Dashboard</h1>
 
     <section class="bg-softWhite text-baseDark rounded-xl shadow-lg p-6 border border-gold">
 
@@ -236,6 +235,12 @@
           <option value="Electricity">Electricity</option>
           <option value="Water">Water</option>
         </select>
+
+           <input id="meterNumber"
+          class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]"
+          placeholder="Enter the meter Number">
+
+
 
         <input id="connectionDate" type="date"
           class="col-span-2 p-2 rounded-lg bg-[#f0f0f0] text-[#162029]">
@@ -671,6 +676,7 @@ function saveNewCustomer() {
       fd.append("postalCode", document.getElementById("postalCode").value);
 
       fd.append("utilityName", document.getElementById("utilityName").value);
+      fd.append("meterNumber", document.getElementById("meterNumber").value);
       fd.append("connectionDate", document.getElementById("connectionDate").value);
 
       fetch("save_new_customer.php", {
