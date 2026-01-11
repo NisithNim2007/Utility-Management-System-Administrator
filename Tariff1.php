@@ -44,15 +44,7 @@
             </div>
         </div>
         <?php
-            $plans = executeQuery($pdo, "SELECT TariffPlanID, CustomerTypeID, UtilityTypeID, EffectiveFrom, EffectiveTo FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
-            if (!empty($plans)) {
-                $selectedPlan = $plans[0];
-            } else {
-                $selectedPlan = [
-                    'EffectiveFrom' => null,
-                    'EffectiveTo'   => null
-                ];
-            }
+            $plans = executeQuery($pdo, "SELECT TariffPlanID, CustomerTypeID, UtilityTypeID FROM TariffPlans WHERE IsActive = 1 ORDER BY TariffPlanID");
 
         $utils = executeQuery($pdo, "SELECT UtilityTypeID, UtilityTypeName FROM UtilityTypes");
         $cats  = executeQuery($pdo, "SELECT CustomerTypeID, CustomerTypeName FROM CustomerTypes");
@@ -102,40 +94,22 @@
         <div class="flex-1 text-left">
             <span class="text-sm text-white mr-2 font-bold">Effective From:</span>
             <span class="text-sm font-medium text-[#213655] font-bold">
-                <?= $selectedPlan && $selectedPlan['EffectiveFrom'] 
-                    ? htmlspecialchars($selectedPlan['EffectiveFrom']) 
-                    : '—' ?>
+                2024-01-01
             </span>
         </div>
 
         <div class="flex-1 text-left">
             <span class="text-sm text-white mr-2 font-bold">Effective To:</span>
             <span class="text-sm font-medium text-[#213655] font-bold">
-                <?= $selectedPlan && $selectedPlan['EffectiveTo'] 
-                    ? htmlspecialchars($selectedPlan['EffectiveTo']) 
-                    : '—' ?>
+                2029-12-31
             </span>
         </div>
-
     </div>
-</div>
-
-        <script>
-        function onPlanChange(){
-            const sel = document.getElementById('TariffPlanID');
-            const opt = sel.options[sel.selectedIndex];
-            document.getElementById('EffectiveFrom').value = opt.dataset.from || '';
-            document.getElementById('EffectiveTo').value = opt.dataset.to || '';
-        }
-        document.addEventListener('DOMContentLoaded', function(){
-            if (document.getElementById('TariffPlanID')) onPlanChange();
-        });
-        </script>
-
-
+    </div>
+    
         <div class="bg-white p-6 rounded-xl shadow-lg relative">
             
-            <!--Water-Demostic table-->
+            <!--Water-Domestic table-->
             <?php
                 $utilityId = 3;    
                 $customerTypeId = 1; 
@@ -255,7 +229,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units WC (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -350,7 +324,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units WG (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -444,7 +418,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units WN (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -538,7 +512,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units ED (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -630,7 +604,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units EC (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -722,7 +696,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units EG (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -813,7 +787,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units EN (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -903,7 +877,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units GD (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -991,7 +965,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units GC (<?= htmlspecialchars($unit) ?>)</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -1078,7 +1052,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units GG (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
@@ -1167,7 +1141,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-[#213655] sticky top-0 z-20">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units GN (<?= htmlspecialchars($unit) ?>) </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">No. of Units (<?= htmlspecialchars($unit) ?>) </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Rate per Unit (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Fixed Charge (Rs.)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-[#ffffff] uppercase tracking-wider w-1/4">Actions</th>
