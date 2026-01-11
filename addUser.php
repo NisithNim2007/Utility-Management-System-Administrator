@@ -1,13 +1,13 @@
 <?php 
 session_start();
 if(!isset($_SESSION['Username'])){
-    header("Location: .././login.php");
+    header("Location: ../login.php");
     exit;
 }
-include ('../include/header.php'); ?>
+include ('./include/header.php'); ?>
 <div class="flex">
-<?php include ('../include/sidebar.php'); 
-    include('../include/db.php');
+<?php include ('./include/sidebar.php'); 
+    include('./include/db.php');
 
 $alert = "";
 if(isset($_SESSION['success'])){
@@ -24,6 +24,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     $fname = trim($_POST['fname']);
     $mname = trim($_POST['mname']);
     $lname = trim($_POST['lname']);
+    $nic = trim($_POST['nic']);
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone']);
     $username = trim($_POST['username']);
@@ -33,13 +34,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     try{
         $pdo -> beginTransaction();
 
-        $sql = "INSERT INTO Persons(FirstName, MiddleName, LastName, Email, PhoneNumber)
-        VALUES (:fname, :mname, :lname, :email, :phone)";
+        $sql = "INSERT INTO Persons(FirstName, MiddleName, LastName, NIC, Email, PhoneNumber)
+        VALUES (:fname, :mname, :lname, :nic, :email, :phone)";
 
         $params = [
             'fname' => $fname,
             'mname' => $mname ?: null,
             'lname' => $lname,
+            'nic' => $nic,
             'email' => $email,
             'phone' => $phone,
         ];
@@ -119,7 +121,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         </div>
         <div>
             <label class="block mb-1 font-semibold text-[#162029]">Password</label>
-            <input type="password" name="pwd" class="w-full border rounded px-3 py-2 border-[#b8c3d6] bg-[#f0f0f0] text-[#162029] focus:outline-none focus:ring-2 focus:ring-[#e5d283] focus:border-[#e5d283]" required minlength="3">
+            <input type="password" name="pwd" class="w-full border rounded px-3 py-2 border-[#b8c3d6] bg-[#f0f0f0] text-[#162029] focus:outline-none focus:ring-2 focus:ring-[#e5d283] focus:border-[#e5d283]" required minlength="6">
         </div>
         <div>
             <label class="block mb-1 font-semibold text-[#162029]">Select Role</label>
@@ -133,6 +135,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         <div class="flex gap-6 items-center" >
             <button type="submit" class="w-[180px] bg-[#213655] text-[#f0f0f0] py-3 rounded-lg text-lg font-semibold hover:bg-[#162029] hover:text-[#e5d283] transition">Add user</button>
             <button type="button" id="clearBtn" class="w-[180px] bg-[#213655] text-[#f0f0f0] py-3 rounded-lg text-lg font-semibold hover:bg-[#162029] hover:text-[#e5d283] transition"><a href="addUser.php">Clear</a></button>
+            <button type="button" id="closeBtn" class="w-[180px] bg-[#e5d283] text-[#213655] py-3 rounded-lg text-lg font-semibold hover:bg-[#162029] hover:text-[#e5d283] transition" onclick="window.location.href='user.php'">Close</a></button>
+        </div>
         </div>
     </form>
 </div>
@@ -172,16 +176,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             return;
         }
 
-        if(pwd.length <3){
-            alert("Password must be atleast 3 characters");
+        if(pwd.length <6){
+            alert("Password must be atleast 6 characters");
             e.preventDefault();
             return;
         }
-        if(nic.length <12){
-            alert("NIC must be 12 characters");
+        if(nic.length <10){
+            alert("NIC must be atleast 10 characters");
             e.preventDefault();
             return;
         
-    });
+    }});
 
 </script>

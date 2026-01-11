@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../include/db.php');
+include('./include/db.php');
 
 if(!isset($_POST['complaintID']) || !isset($_POST['newStatus'])){
     echo "Error";

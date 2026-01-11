@@ -1,13 +1,13 @@
 <?php 
 session_start();
 if(!isset($_SESSION['Username'])){
-    header("Location: .././login.php");
+    header("Location: ../login.php");
     exit;
 }
-include ('../include/header.php'); ?>
+include ('./include/header.php'); ?>
 <div class="flex">
-<?php include ('../include/sidebar.php'); 
-    include('../include/db.php');
+<?php include ('./include/sidebar.php'); 
+    include('./include/db.php');
 
  $search = trim($_POST['search'] ?? null);
  $role = trim($_POST['role'] ?? null);

@@ -4,15 +4,15 @@ if(!isset($_SESSION['Username'])){
      header("Location: ../login.php");
     exit;
 }
-include('../include/db.php');
+include('./include/db.php');
 
 $data = json_decode(file_get_contents('php://input'), true);
 
 $userId = intval($data['userId'] ?? 0);
 $newPassword = trim($data['newPassword'] ?? '');
 
-if(!$userId || strlen($newPassword) < 3){
-    echo json_encode(['success'=>false, 'message'=>'Invalid input.Ensure password has minimum 3 characters.']);
+if(!$userId || strlen($newPassword) < 6){
+    echo json_encode(['success'=>false, 'message'=>'Invalid input.Ensure password has minimum 6 characters.']);
     exit;
 }
 

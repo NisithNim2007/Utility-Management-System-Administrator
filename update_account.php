@@ -4,7 +4,7 @@ if(!isset($_SESSION['Username'])){
     header("Location: ../login.php");
     exit;
 }
-include('../include/db.php');
+include('./include/db.php');
 
 $data = json_decode(file_get_contents('php://input'), true);
 
