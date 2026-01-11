@@ -38,23 +38,7 @@
 </head>
 
 <body class="bg-baseDark text-softWhite">
-
-  <!-- LEFT NAVBAR -->
-  <nav class="bg-[#213655] text-white w-64 h-screen fixed top-0 left-0 flex flex-col p-6 overflow-y-auto">
-    <h1 class="text-3xl font-bold mb-10 leading-tight">Utility Management System</h1>
-
-    <ul class="flex flex-col space-y-4 w-full">
-      <li><a class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-gray-900 rounded transition">Dashboard</a></li>
-      <li><a class="flex items-center justify-center w-full p-5 bg-blue-300 text-[#213655] rounded font-semibold">Person Details</a></li>
-      <li><a class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">Tariff Plans</a></li>
-      <li><a class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">Complaint Handling</a></li>
-      <li><a class="flex items-center justify-center w-full p-5 hover:bg-blue-300 hover:text-[#213655] rounded">User Management</a></li>
-    </ul>
-
-    <div class="mt-auto w-full">
-      <a class="block text-center text-[#162029] p-3 mt-6 bg-[#e5d283] hover:bg-red-500 rounded font-semibold transition">Log out</a>
-    </div>
-  </nav>
+<?php include ('include/sidebar.php'); ?>
 
   <!-- MAIN AREA -->
   <main class="ml-64 p-8">
