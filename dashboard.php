@@ -105,10 +105,10 @@ $u_count = isset($u_count['usr']) ? (int)$u_count['usr'] : 0;
         </div>
 
         <div class="flex flex-col gap-6">
-            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition">Add new customer</button>
-            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition">Add new tariff plan</button>
+            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition"><a href="customer.php">Add new customer</button>
+            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition"><a href="Tariff1.php">Add new tariff plan</button>
             <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition"><a href="user/addUser.php">Add new user</a></button>
-            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition">Add new connectiom</button>
+            <button class="bg-[#213655] text-white font-semibold py-4 px-6 rounded shadow hover:bg-[#162029] transition"><a href="customer.php">Add new connection</button>
         </div>
    </div>
 </main>
